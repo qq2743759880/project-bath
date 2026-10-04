@@ -24,7 +24,7 @@
 
 ## 安装到 Agent
 
-下载 **[project-bath-v0.1.3-skill.zip](https://github.com/qq2743759880/project-bath/releases/download/v0.1.3/project-bath-v0.1.3-skill.zip)**，解压后只需这两个文件：
+下载 **[project-bath-v0.1.3-skill.zip](https://raw.githubusercontent.com/qq2743759880/project-bath/main/distributions/project-bath-v0.1.3-skill.zip)**，解压后只需这两个文件：
 
 ```text
 project-bath/

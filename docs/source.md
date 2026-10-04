@@ -4,7 +4,7 @@
 
 ## 安装文件与展示文件
 
-**Agent Runtime** 仅需 `project-bath/SKILL.md` 和 `project-bath/references/LICENSE`。获取 [v0.1.3 最小 Skill ZIP](https://github.com/qq2743759880/project-bath/releases/download/v0.1.3/project-bath-v0.1.3-skill.zip)，解压整个目录后按宿主规则安装，或让 Agent 直接读取其 SKILL.md。无需安装 Node、Python、浏览器图表工具或包管理器。
+**Agent Runtime** 仅需 `project-bath/SKILL.md` 和 `project-bath/references/LICENSE`。获取 [v0.1.3 最小 Skill ZIP](https://raw.githubusercontent.com/qq2743759880/project-bath/main/distributions/project-bath-v0.1.3-skill.zip)，解压整个目录后按宿主规则安装，或让 Agent 直接读取其 SKILL.md。无需安装 Node、Python、浏览器图表工具或包管理器。
 
 **GitHub Showcase** 包括 README、[身份图](../assets/hero.png)、流程/恢复静态预览、[交互 HTML 与 typed JSON](workflow.md)、恢复及本页说明。它们供人理解方法，不是 Agent Runtime 依赖。完整 clone 会获取这个展示面；安装时只选上述两个原始文件。
 
