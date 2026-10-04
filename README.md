@@ -24,7 +24,7 @@
 
 ## 安装到 Agent
 
-下载 **[project-bath-v0.1.3-skill.zip](https://raw.githubusercontent.com/qq2743759880/project-bath/main/distributions/project-bath-v0.1.3-skill.zip)**，解压后只需这两个文件：
+下载 **[project-bath-v0.1.3-skill.zip](https://raw.githubusercontent.com/qq2743759880/project-bath/v0.1.3/distributions/project-bath-v0.1.3-skill.zip)**，解压后只需这两个文件：
 
 ```text
 project-bath/
@@ -33,7 +33,7 @@ project-bath/
    └─ LICENSE
 ```
 
-实际安装的是 `SKILL.md` 中的完整方法，以及合法分发所需的原许可证。没有独立 CLI、自动清理程序或 Python/Node 运行依赖。
+**执行文件（Execution）只有 `SKILL.md`**，Agent 读取它的完整方法。**完整分发文件（Redistribution）是 `SKILL.md` 加 `references/LICENSE`**；许可证随包保留版权声明，不是执行依赖。没有独立 CLI、自动清理程序或 Python/Node 运行依赖。这个下载入口固定到 `v0.1.3`，不随 main 后续更新改变；[分发清单](distributions/project-bath-v0.1.3-manifest.json)列出两种文件边界与原字节哈希。
 
 把整个 `project-bath/` 放入你的宿主 Agent 支持的 Skill 目录；宿主发现路径各不相同。也可以让能读取本机文件的 Agent 直接读取解压目录中的 `SKILL.md`。正式清理时，Agent 还需要在你授权的范围内读写文件，并能核验 D 盘备份。
 
@@ -96,4 +96,4 @@ Agent 会先核对归属和后状态，选择直接恢复或补丁合并；不�
 | 按指定批次恢复与处理冲突 | [备份与恢复](docs/recovery.md) |
 | 核对 Runtime、展示资产和原文来源 | [来源与分发说明](docs/source.md) |
 
-当前 Skill 版本为 **v0.1.3**，按 [`MIT` 开源许可证](LICENSE) 发布；原始许可及全部版权声明保留在 [references/LICENSE](references/LICENSE)。交互展示的必要许可与字体声明见 [展示许可说明](references/archify/NOTICE.md)。
+当前 Skill 版本为 **v0.1.3**，按 [`MIT` 开源许可证](LICENSE) 发布；原始许可及全部版权声明保留在 [references/LICENSE](references/LICENSE)。交互展示的必要许可与字体声明见 [展示许可说明](licenses/showcase/archify/NOTICE.md)。
