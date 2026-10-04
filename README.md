@@ -63,6 +63,12 @@ cd project-bath
 
 ## 实际怎样清理
 
+[![project-bath 清理流程：主流程、验收、只读与回退分支](assets/workflow.png)](https://qq2743759880.github.io/project-bath/)
+
+**[Open Interactive Diagram](https://qq2743759880.github.io/project-bath/)** · [恢复交互图](https://qq2743759880.github.io/project-bath/recovery/) · [六秒流程动效](assets/workflow.webm)
+
+在线图支持浅色/深色、Live/Still、节点来源、上下游、路径、语义透镜和演示模式。所有交互探索的是编写的流程关系，不代表项目运行数据。[可编辑JSON与本地HTML](docs/workflow.md) 也随仓库提供。
+
 [流程说明与图](docs/workflow.md) 展示：定范围 → 建基线 → 找候选 → 先保存 → 清理 → 验收 → 交接，以及只读、暂留、备份核验失败和本轮回退分支。步骤全部来自原始 Skill，是 Agent 的执行方法，不代表独立后台自动化。
 
 验收会核对受影响检查、公开行为、用户改动、旧事实是否退出实际加载、归档是否退出构建及原件可回取。未知加载通道应明确说明；修改文件不会清空已读对话，需要时保存已验证交接，再使用新上下文。

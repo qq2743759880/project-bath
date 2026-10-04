@@ -15,3 +15,11 @@
 ```
 
 这是交给已加载 Skill 的 Agent 的请求，不是 shell 命令。不要全局 reset/clean，也不要以整文件恢复覆盖后续用户修改。检查失败只回退本轮，已有失败单独说明；无改动不建空归档。
+
+## 恢复路径图
+
+[Open Interactive Recovery](https://qq2743759880.github.io/project-bath/recovery/)
+
+![恢复前比对，后续修改合并，冲突保留两份](../assets/recovery.png)
+
+[可编辑JSON](../assets/diagram-source/recovery.json) · [本地HTML](recovery/index.html)
