@@ -1,4 +1,0 @@
-project-bath — Hero pack
-hero.png (1280x640): README header; optional GitHub social preview upload is a separate setting.
-No mocks. No original logo; text wordmark, dark/mint/Inter design proposal.
-Source: project-bath SKILL.md and MIT license. Regenerate: npm --prefix assets/visual-source run render.

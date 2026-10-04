@@ -1,40 +1,26 @@
-# 清理流程与交互阅读
+# v0.1.3 清理流程与交互阅读
 
 [Open Interactive Diagram](https://qq2743759880.github.io/project-bath/) · [恢复交互图](https://qq2743759880.github.io/project-bath/recovery/)
 
-![清理正常与异常路径](../assets/workflow.png)
+![证据、唯一备份落点、清理与失败保护](../assets/workflow.png)
 
-图中步骤是交给Agent执行的方法，不是自动清理系统。绿色表示正常方法步骤；红色表示证据/原件保护和失败路径；紫色虚线表示只读或暂留分支。恢复细节拆为单独视图，避免长图掩盖判断条件。
+图中步骤来自 [v0.1.3 原始 SKILL](../SKILL.md)。这是 Agent 执行的方法，不是运行中的自动清理系统。正常流程先查证，再核对备份落点、保存原件、清理与验收；例外路径保留只读、证据不足、D 盘不可用/无写权限、复制或核验失败、验收新增失败。
 
-点节点查看来源与上下游；路径按钮选择两个节点，只沿真实编写的有向连接探索；透镜按方法角色筛选；Live/Still控制有限trace动效；演示模式改变阅读布局。动态不改变规则，也不代表后台任务在运行。
+## 本版的关键条件
 
-## 源文件与离线使用
+- 唯一备份位置为 `D:/project-bath/<项目目录>/<批次>/`；D 盘不可用或无写权限停止本批，不能更换落点。
+- 项目目录为 `<项目名>-<规范化项目根绝对路径的SHA-256前8位>`；解析链接，统一斜杠和大小写，核对清单根归属。批次不得重名覆盖。
+- 跨盘先复制并核验哈希，再完成移动；失败保留原件。
+- 保存的是工作区实际原字节，清单记录项目根、范围、原/备份路径、处置、前后哈希、依据与检查；局部编辑保留本轮补丁。
+- 新增失败只回退本轮；恢复先比对本轮后状态，后续改动不得被整文件覆盖。
 
-- [主流程 typed JSON](../assets/diagram-source/workflow.json)、[恢复 typed JSON](../assets/diagram-source/recovery.json)
-- [主流程 self-contained HTML](index.html)、[恢复 self-contained HTML](recovery/index.html)：克隆后在浏览器本地打开即可，无需安装运行环境。
-- [六秒trace WebM](../assets/workflow.webm)，这是阅读动效，非项目运行Demo。
-- [备份与恢复说明](recovery.md)
+## 交互与离线文件
 
-## 对照原文
+点节点查看固定版本原文来源与关联关系；上下游只追踪编写的连接；路径选择两个节点，沿真实有向连接探索。透镜按方法角色筛选，演示模式用于讲解，Live/Still 控制 trace 阅读动效。
 
-| 节点 / 连接条件 | 原始事实 |
-|---|---|
-| 确定范围、授权清理 / 仅审计 | [SKILL第1步](../SKILL.md#执行)：审计零写入；授权内可逆项执行；不清楚范围才澄清 |
-| 建立基线 | 第2步：已有改动及失败单列 |
-| 候选 → 证据充分 / 不足 | 第3步及判断依据：查真实入口引用、等价行为；不足暂留 |
-| 保存 → 清理 / 暂留 | 第4步、备份规则：核验工作区原字节、hash、批次清单后才能写 |
-| 清理 → 验收 → 交接 / 本轮回退 | 第4–6步：一个问题一批；重跑受影响检查；新增失败只回退本轮 |
-| 恢复一致 / 后续改动 / 冲突 | 备份与恢复：只读本批清单，比对本轮后状态；补丁比对合并；冲突保留两份和现状 |
+- [主流程 typed JSON](../assets/diagram-source/workflow.json) · [恢复 typed JSON](../assets/diagram-source/recovery.json)
+- [自包含主流程 HTML](index.html) · [恢复 HTML](recovery/index.html)：clone 后在浏览器直接打开。
+- [原生六秒 WebM](../assets/workflow.webm)：流程阅读动效，不是软件运行 Demo。
+- [恢复与冲突说明](recovery.md) · [来源与分发边界](source.md)
 
-## 重建图像和HTML
-
-使用[Archify官方 v3.0.1](https://github.com/tt-a1i/archify/releases/tag/v3.0.1)完整Skill。取得包后，从本仓根目录运行（将ARCHIFY目录换成自己的路径）：
-
-```sh
-node ARCHIFY/bin/archify.mjs finalize workflow assets/diagram-source/workflow.json docs/index.html --repo-root . --quality showcase --out-dir diagram-evidence --json
-node ARCHIFY/bin/archify.mjs finalize workflow assets/diagram-source/recovery.json docs/recovery/index.html --repo-root . --quality showcase --out-dir recovery-evidence --json
-```
-
-源文件固定引用本仓原始Skill提交；该提交必须存在于本地Git对象中。原生finalize验证schema、showcase质量、来源、交付身份与真实浏览器；不要用单独render代替完整链。静态预览和WebM从原生viewer的导出菜单生成。重建工具需要Node与Chrome/Chromium；加载project-bath方法本身不需要这些工具。
-
-[Archify MIT](../references/archify/LICENSE) · [原第三方声明](../references/archify/THIRD_PARTY_NOTICES.md) · [嵌入字体SIL OFL](../references/archify/JetBrainsMono-OFL.txt)。未使用第三方品牌标志。
+这些文件属于 GitHub 展示面，不是安装到 Agent 的 Runtime。保留 editable JSON 供阅读和调整；完整构建工具、设计源、依赖锁和验收日志由维护者另行管理，未作为使用依赖发布。
