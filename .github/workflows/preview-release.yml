@@ -1,0 +1,48 @@
+name: Publish sealed preview
+on:
+  push:
+    branches: [main]
+    paths: [.github/preview-release.json, .github/workflows/preview-release.yml]
+permissions:
+  contents: write
+concurrency:
+  group: sealed-preview-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify frozen artifact and build release notes
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json,hashlib,re,os
+          from pathlib import Path
+          d=json.loads(Path('.github/preview-release.json').read_text())
+          assert d['channel']=='preview' and re.fullmatch(r'v\d+\.\d+\.\d+-rc\d+',d['tag'])
+          p=Path(d['artifact']); assert p.is_file() and '..' not in p.parts and p.parts[0]=='distributions'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==d['sha256']
+          Path('release-notes.md').write_text(d['notes']+'\n\nRuntime SHA-256: `'+d['sha256']+'`\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('PREVIEW_TAG='+d['tag']+'\nSEALED_ARTIFACT='+str(p)+'\n')
+          PY
+      - name: Publish a new preview without moving existing tags or stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          if gh release view "$PREVIEW_TAG" >/dev/null 2>&1; then
+            echo "Release already exists; preserving it without edits."
+            exit 0
+          fi
+          if gh api "repos/$GH_REPO/git/ref/tags/$PREVIEW_TAG" >/dev/null 2>&1; then
+            test "$(gh api "repos/$GH_REPO/git/ref/tags/$PREVIEW_TAG" --jq .object.sha)" = "$GITHUB_SHA"
+          else
+            gh api "repos/$GH_REPO/git/refs" -f ref="refs/tags/$PREVIEW_TAG" -f sha="$GITHUB_SHA" >/dev/null
+          fi
+          gh release create "$PREVIEW_TAG" "$SEALED_ARTIFACT" --verify-tag --prerelease --latest=false --title "$PREVIEW_TAG — Preview" --notes-file release-notes.md

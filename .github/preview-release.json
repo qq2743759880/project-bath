@@ -1,0 +1,7 @@
+{
+  "channel": "preview",
+  "tag": "v0.2.0-rc1",
+  "artifact": "distributions/project-bath-v0.2.0-rc1.zip",
+  "sha256": "be0f03a07a7be155e2e011d7029fb08dbad0b6557dc9993f4b7418f345007319",
+  "notes": "Preview / Release Candidate. Stable remains v0.1.3 and is still the default installation.\n\nThis release preserves the sealed four-file Runtime ZIP. Preview requires Windows, PowerShell 7.4+, local fixed NTFS and an available D drive. It introduces guarded single-file Prepare / Apply / trusted Check / Finalize, Cancel, Close and conditional Completed historical Restore. Check is not an OS sandbox; semantic decisions remain the Agent's responsibility.\n\nRead README and references/protocol.md before use. Keep your Stable installation; test Preview in a separate explicit location. Repository-hosted historical fallback is pinned to this tag."
+}

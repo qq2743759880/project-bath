@@ -4,4 +4,4 @@
 
 [Archify 原始 MIT 许可及版权声明](LICENSE) · [JetBrains Mono 原始 SIL OFL 许可](JetBrainsMono-OFL.txt)。未使用第三方品牌标志。
 
-这些许可适用于展示 HTML 中实际再分发的内容，属于 Showcase；最小 Agent Runtime 包仅含原始 Skill 和其 references/LICENSE。
+这些许可适用于展示 HTML 中实际再分发的内容，属于 Showcase；最小 Preview Agent Runtime 包仅含原始 SKILL.md、references/protocol.md、scripts/bath.ps1 和 references/LICENSE；Stable v0.1.3 保留其原始两文件包。

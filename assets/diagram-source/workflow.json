@@ -2,14 +2,33 @@
   "schema_version": 2,
   "diagram_type": "workflow",
   "meta": {
-    "title": "project-bath v0.1.3 · 先保存，再清理",
+    "title": "project-bath RC1 · 先保存，再清理",
     "locale": "zh-CN",
-    "animation": "trace",
     "quality_profile": "showcase",
-    "output": "workflow.html",
+    "animation": "trace",
+    "output": "docs/index.html",
     "repository": {
       "url": "https://github.com/qq2743759880/project-bath.git",
-      "revision": "7a9eb6585bc2508c8580b7fa5ec64820af4ebc9a"
+      "revision": "fb200637faccbc6e4c9d78784ce84ac15109abc0",
+      "provider": "github",
+      "link_mode": "web"
+    },
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "external": {
+          "label": "用户输入 / 观察状态"
+        },
+        "backend": {
+          "label": "Agent 步骤 / 工具操作"
+        },
+        "security": {
+          "label": "证据与安全条件"
+        },
+        "database": {
+          "label": "保留结果 / 资料"
+        }
+      }
     },
     "translations": {
       "page.title": "{title}",
@@ -60,12 +79,12 @@
       "legend.lifecycle.external": "外部状态",
       "legend.lifecycle.final": "终态",
       "viewer.kind.frontend": "前端",
-      "viewer.kind.backend": "方法步骤",
+      "viewer.kind.backend": "后端",
       "viewer.kind.database": "数据库",
       "viewer.kind.cloud": "云服务",
-      "viewer.kind.security": "证据与保护",
+      "viewer.kind.security": "安全",
       "viewer.kind.messagebus": "消息总线",
-      "viewer.kind.external": "会话交接",
+      "viewer.kind.external": "外部系统",
       "viewer.kind.neutral": "中性",
       "viewer.kind.node": "节点",
       "viewer.kind.start": "开始",
@@ -450,419 +469,367 @@
       "viewer.common.copyLink": "复制链接",
       "viewer.common.clear": "清除",
       "viewer.common.close": "关闭"
-    },
-    "legend": {
-      "entries": {
-        "backend": {
-          "label": "方法步骤"
-        },
-        "security": {
-          "label": "证据与保护"
-        },
-        "external": {
-          "label": "会话交接"
-        }
-      }
     }
   },
   "lanes": [
     {
-      "id": "prepare",
-      "label": "范围、证据与备份"
+      "id": "judgment",
+      "label": "先判断：Agent 负责语义与范围"
     },
     {
-      "id": "stop",
-      "label": "只读、暂留与停止 / 回退",
-      "variant": "exception"
+      "id": "saved",
+      "label": "执行与检查：先保存，后应用，最后完成"
     },
     {
-      "id": "execute",
-      "label": "本轮清理、验收与交接"
-    },
-    {
-      "id": "failure",
-      "label": "验收新增失败后的本轮回退",
+      "id": "recovery",
+      "label": "回退：先核对安全条件",
       "variant": "exception"
     }
   ],
+  "mainPath": [
+    "request",
+    "scope",
+    "evidence",
+    "prepare",
+    "backup",
+    "apply",
+    "applied",
+    "check",
+    "finalize",
+    "completed"
+  ],
   "nodes": [
     {
-      "id": "scope",
-      "lane": "prepare",
+      "id": "request",
+      "lane": "judgment",
       "col": 0,
-      "type": "backend",
-      "label": "确定范围",
-      "sublabel": "保留项与读取预算",
-      "icon": "none",
-      "width": 144,
+      "type": "external",
+      "label": "用户请求",
+      "sublabel": "审计或阶段清理",
+      "width": 132,
       "sources": [
         {
           "path": "SKILL.md",
-          "line": 16,
-          "label": "v0.1.3 原始方法"
+          "line": 3,
+          "end_line": 3
         }
       ]
     },
     {
-      "id": "baseline",
-      "lane": "prepare",
+      "id": "scope",
+      "lane": "judgment",
       "col": 1,
       "type": "backend",
-      "label": "建立基线",
-      "sublabel": "已有改动与失败",
-      "icon": "none",
-      "width": 144,
+      "label": "范围 / baseline",
+      "sublabel": "记录有效约束与改动",
+      "width": 132,
       "sources": [
         {
           "path": "SKILL.md",
-          "line": 17,
-          "label": "v0.1.3 原始方法"
-        }
-      ]
-    },
-    {
-      "id": "discover",
-      "lane": "prepare",
-      "col": 2,
-      "type": "backend",
-      "label": "发现候选",
-      "sublabel": "真实入口与引用",
-      "icon": "none",
-      "width": 144,
-      "sources": [
-        {
-          "path": "SKILL.md",
-          "line": 18,
-          "label": "v0.1.3 原始方法"
+          "line": 12
         }
       ]
     },
     {
       "id": "evidence",
-      "lane": "prepare",
+      "lane": "judgment",
+      "col": 2,
+      "type": "security",
+      "label": "候选证据判断",
+      "sublabel": "日期 / 零引用不充分",
+      "width": 132,
+      "sources": [
+        {
+          "path": "SKILL.md",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "id": "noop",
+      "lane": "judgment",
       "col": 3,
-      "type": "security",
-      "label": "判断证据",
-      "sublabel": "失效或行为等价",
-      "icon": "none",
-      "width": 144,
+      "type": "database",
+      "label": "暂留 / NoOp",
+      "sublabel": "报告理由，零修改",
+      "width": 132,
       "sources": [
         {
           "path": "SKILL.md",
-          "line": 18,
-          "label": "v0.1.3 原始方法"
+          "line": 13
         }
       ]
     },
     {
-      "id": "archive",
-      "lane": "prepare",
-      "col": 4,
-      "type": "security",
-      "label": "核对备份位置",
-      "sublabel": "D盘、项目归属与批次",
-      "icon": "none",
-      "width": 144,
-      "sources": [
-        {
-          "path": "SKILL.md",
-          "line": 33,
-          "label": "v0.1.3 原始方法"
-        }
-      ]
-    },
-    {
-      "id": "save",
-      "lane": "prepare",
-      "col": 5,
-      "type": "security",
-      "label": "保存原字节",
-      "sublabel": "跨盘先复制并核验",
-      "icon": "none",
-      "width": 144,
-      "sources": [
-        {
-          "path": "SKILL.md",
-          "line": 34,
-          "label": "v0.1.3 原始方法"
-        }
-      ]
-    },
-    {
-      "id": "clean",
-      "lane": "execute",
-      "col": 5,
+      "id": "prepare",
+      "lane": "saved",
+      "col": 2,
       "type": "backend",
-      "label": "清理一批",
-      "sublabel": "一个问题，遵守边界",
-      "icon": "none",
-      "width": 144,
+      "label": "Prepare",
+      "sublabel": "绑定原字节与替换 SHA",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 19,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 307,
+          "end_line": 348
         }
-      ]
+      ],
+      "yOffset": -45
     },
     {
-      "id": "verify",
-      "lane": "execute",
-      "col": 4,
-      "type": "security",
-      "label": "验收本轮",
-      "sublabel": "行为、改动与可回取",
-      "icon": "none",
-      "width": 144,
+      "id": "backup",
+      "lane": "saved",
+      "col": 2,
+      "type": "database",
+      "label": "BackedUp",
+      "sublabel": "D 盘备份已核验",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 20,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 337,
+          "end_line": 348
         }
-      ]
+      ],
+      "yOffset": 45
     },
     {
-      "id": "handoff",
-      "lane": "execute",
+      "id": "apply",
+      "lane": "saved",
       "col": 3,
-      "type": "external",
-      "label": "交接结果",
-      "sublabel": "实际检查与恢复位置",
-      "icon": "none",
-      "width": 144,
+      "type": "backend",
+      "label": "Apply",
+      "sublabel": "核对后归档或编辑",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 21,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 539,
+          "end_line": 556
         }
-      ]
+      ],
+      "yOffset": -45
     },
     {
-      "id": "audit",
-      "lane": "stop",
-      "col": 0,
-      "type": "external",
-      "label": "只读审计交接",
-      "sublabel": "零写入，不建空归档",
-      "icon": "none",
-      "width": 144,
-      "sources": [
-        {
-          "path": "SKILL.md",
-          "line": 16,
-          "label": "v0.1.3 原始方法"
-        }
-      ]
-    },
-    {
-      "id": "retain",
-      "lane": "stop",
+      "id": "applied",
+      "lane": "saved",
       "col": 3,
-      "type": "external",
-      "label": "暂留并说明",
-      "sublabel": "证据不足，不凑改动",
-      "icon": "none",
-      "width": 144,
+      "type": "database",
+      "label": "Applied",
+      "sublabel": "实际变更已记录",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 18,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 549,
+          "end_line": 554
         }
-      ]
+      ],
+      "yOffset": 45
     },
     {
-      "id": "blocked",
-      "lane": "stop",
+      "id": "check",
+      "lane": "saved",
       "col": 4,
       "type": "security",
-      "label": "停止本批",
-      "sublabel": "保留原件，不换落点",
-      "icon": "none",
-      "width": 144,
+      "label": "Check",
+      "sublabel": "受信任只读检查副本",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 33,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 481,
+          "end_line": 513
         }
-      ]
+      ],
+      "yOffset": 0
     },
     {
-      "id": "rollback",
-      "lane": "failure",
-      "col": 4,
+      "id": "finalize",
+      "lane": "saved",
+      "col": 5,
       "type": "security",
-      "label": "只回退本轮",
-      "sublabel": "保护后续用户内容",
-      "icon": "none",
-      "width": 144,
+      "label": "Finalize",
+      "sublabel": "最新 receipt / 两份清单",
+      "width": 132,
       "sources": [
         {
-          "path": "SKILL.md",
-          "line": 37,
-          "label": "v0.1.3 原始方法"
+          "path": "scripts/bath.ps1",
+          "line": 515,
+          "end_line": 537
         }
-      ]
+      ],
+      "yOffset": -45
+    },
+    {
+      "id": "completed",
+      "lane": "saved",
+      "col": 5,
+      "type": "database",
+      "label": "Completed",
+      "sublabel": "保留结果 / 释放 lease",
+      "width": 132,
+      "sources": [
+        {
+          "path": "scripts/bath.ps1",
+          "line": 534,
+          "end_line": 537
+        }
+      ],
+      "yOffset": 45
+    },
+    {
+      "id": "restore",
+      "lane": "recovery",
+      "col": 4,
+      "type": "backend",
+      "label": "Restore",
+      "sublabel": "当前状态 / 备份有效",
+      "width": 132,
+      "sources": [
+        {
+          "path": "scripts/bath.ps1",
+          "line": 557,
+          "end_line": 608
+        }
+      ],
+      "yOffset": 0
+    },
+    {
+      "id": "restored",
+      "lane": "recovery",
+      "col": 5,
+      "type": "database",
+      "label": "Restored",
+      "sublabel": "原字节恢复 / 释放 lease",
+      "width": 132,
+      "sources": [
+        {
+          "path": "scripts/bath.ps1",
+          "line": 604,
+          "end_line": 608
+        }
+      ],
+      "yOffset": 0
     }
   ],
   "edges": [
     {
-      "id": "scope-baseline",
+      "id": "request-scope",
+      "from": "request",
+      "to": "scope",
+      "role": "main",
+      "variant": "default"
+    },
+    {
+      "id": "scope-evidence",
       "from": "scope",
-      "to": "baseline",
-      "role": "main",
-      "variant": "emphasis",
-      "label": "授权清理"
-    },
-    {
-      "id": "baseline-discover",
-      "from": "baseline",
-      "to": "discover",
-      "role": "main",
-      "variant": "emphasis"
-    },
-    {
-      "id": "discover-evidence",
-      "from": "discover",
       "to": "evidence",
       "role": "main",
-      "variant": "emphasis"
+      "variant": "default"
     },
     {
-      "id": "evidence-archive",
+      "id": "evidence-noop",
       "from": "evidence",
-      "to": "archive",
-      "role": "main",
-      "variant": "emphasis",
-      "label": "证据充分"
-    },
-    {
-      "id": "archive-save",
-      "from": "archive",
-      "to": "save",
-      "role": "main",
-      "variant": "emphasis",
-      "label": "落点核验通过"
-    },
-    {
-      "id": "save-clean",
-      "from": "save",
-      "to": "clean",
-      "role": "main",
-      "variant": "emphasis",
-      "label": "备份、清单核验通过"
-    },
-    {
-      "id": "clean-verify",
-      "from": "clean",
-      "to": "verify",
-      "role": "main",
-      "variant": "emphasis"
-    },
-    {
-      "id": "verify-handoff",
-      "from": "verify",
-      "to": "handoff",
-      "role": "main",
-      "variant": "emphasis",
-      "label": "验收通过"
-    },
-    {
-      "id": "scope-audit",
-      "from": "scope",
-      "to": "audit",
+      "to": "noop",
       "role": "branch",
       "variant": "dashed",
-      "label": "只读审计"
+      "label": "证据不足 / 仅审计"
     },
     {
-      "id": "evidence-retain",
+      "id": "evidence-prepare",
       "from": "evidence",
-      "to": "retain",
-      "role": "branch",
-      "variant": "dashed",
-      "label": "证据不足"
+      "to": "prepare",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "授权内，证据充分"
     },
     {
-      "id": "archive-blocked",
-      "from": "archive",
-      "to": "blocked",
-      "role": "error",
-      "variant": "security",
-      "label": "D盘不可用或无写权限"
+      "id": "prepare-backed-up",
+      "from": "prepare",
+      "to": "backup",
+      "role": "main",
+      "variant": "default"
     },
     {
-      "id": "save-blocked",
-      "from": "save",
-      "to": "blocked",
-      "role": "error",
-      "variant": "security",
-      "label": "复制 / 核验失败",
-      "fromSide": "right",
-      "toSide": "right",
-      "route": "outside-right"
+      "id": "backup-apply",
+      "from": "backup",
+      "to": "apply",
+      "role": "main",
+      "variant": "default",
+      "label": "备份核验成功"
     },
     {
-      "id": "verify-rollback",
-      "from": "verify",
-      "to": "rollback",
+      "id": "apply-applied",
+      "from": "apply",
+      "to": "applied",
+      "role": "main",
+      "variant": "default"
+    },
+    {
+      "id": "applied-check",
+      "from": "applied",
+      "to": "check",
+      "role": "main",
+      "variant": "default"
+    },
+    {
+      "id": "check-finalize",
+      "from": "check",
+      "to": "finalize",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "PASS 且无副作用"
+    },
+    {
+      "id": "finalize-completed",
+      "from": "finalize",
+      "to": "completed",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "绑定核验通过"
+    },
+    {
+      "id": "check-restore",
+      "from": "check",
+      "to": "restore",
       "role": "error",
       "variant": "security",
-      "label": "新增失败"
+      "label": "FAIL，且可安全回退"
+    },
+    {
+      "id": "restore-restored",
+      "from": "restore",
+      "to": "restored",
+      "role": "main",
+      "variant": "emphasis",
+      "label": "核对后恢复"
     }
   ],
-  "semanticChecks": {
-    "allowedRoots": [
-      "scope"
-    ],
-    "allowedTerminals": [
-      "audit",
-      "retain",
-      "blocked",
-      "handoff",
-      "rollback"
-    ],
-    "requiredEdges": [
-      {
-        "from": "archive",
-        "to": "blocked"
-      },
-      {
-        "from": "save",
-        "to": "clean"
-      },
-      {
-        "from": "verify",
-        "to": "rollback"
-      }
-    ],
-    "requiredPaths": [
-      {
-        "from": "scope",
-        "to": "handoff"
-      }
-    ]
-  },
   "cards": [
     {
       "dot": "cyan",
-      "title": "唯一备份落点",
+      "title": "当前原字节先保存",
       "items": [
-        "D:/project-bath/<项目目录>/<批次>/；禁止 C 盘或项目内分散归档。",
-        "项目目录：项目名 + 规范化根路径 SHA-256 前8位；解析链接，统一斜杠和大小写。",
-        "同一项目复用目录；批次不重名覆盖，核对根归属、路径逃逸和冲突。"
+        "D:/project-bath/<项目名-根路径hash>/<唯一批次>/",
+        "单文件 batch；普通文件 ≤16 MiB；不以 Git HEAD 代替工作区"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Check 的真实边界",
+      "items": [
+        "D 盘隔离副本：2048 文件 / 512 目录 / 64 MiB / 30 秒",
+        "检测原项目与副本副作用；受信任检查，不是 OS 沙箱"
       ]
     },
     {
       "dot": "rose",
-      "title": "保存之后才写入",
+      "title": "中断、冲突、历史恢复",
       "items": [
-        "跨盘先复制并核对哈希，再完成移动；失败保留原件。",
-        "备份工作区实际字节；manifest 记录项目根、范围、路径、处置、前后哈希、依据与检查。",
-        "局部编辑保留本轮可逆补丁；方法由 Agent 执行，图不是自动清理程序。"
+        "IncompletePrepare 用 Cancel；无安全自动路径时用 Close",
+        "Completed 可做有条件 Historical Restore；详见控制面图"
       ]
     }
   ]

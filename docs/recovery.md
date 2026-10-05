@@ -1,25 +1,19 @@
-# v0.1.3 备份、恢复与冲突
+# RC1 恢复、取消与安全终止
 
-[Open Interactive Recovery Diagram](https://qq2743759880.github.io/project-bath/recovery/)
+[交互恢复图](https://qq2743759880.github.io/project-bath/recovery/) · [Typed JSON](../assets/diagram-source/recovery.json)
 
-![本批清单、项目归属、后状态比对与冲突保留](../assets/recovery.png)
+![恢复控制面](../assets/recovery.png)
 
-## 先知道原件放在哪里
+先给 Agent 项目根路径与原交接的 D 盘批次路径，让它通过 Status 只读核对真实状态。完整参数见 [protocol](../references/protocol.md)。不要手改备份记录、删除 lease 或直接覆盖目标。
 
-所有停用文件与编辑前备份统一放在 `D:/project-bath/<项目目录>/<批次>/`。项目目录为 `<项目名>-<规范化项目根绝对路径的SHA-256前8位>`，根路径解析链接并统一斜杠和大小写。同一项目复用同一目录，清单记录项目根并核对归属；批次不得重名覆盖，内部保留原相对路径。
+| 现场 | 合法路径与边界 |
+|---|---|
+| IncompletePrepare | 当前 owner / prepare-intent 完整，且没有 journal 时才 Cancel；Cancelled 保留文件并释放自己的 lease。已准备或已应用批次不能用 Cancel。 |
+| BackedUp / Applied | 工具再次核验 root、parent、备份与目标；条件匹配才 Restore。 |
+| Applying / Restoring 未确认，或 Conflict / Ambiguous | 先 Status。没有安全自动路径且 owner / intent 证据有效时才能 Close。InterruptedRestore 不自动重试覆盖。健康批次走正常 Restore / Finalize。 |
+| Stopped | 安全终止，保留现场和证据；没有恢复，不支持自动 Restore。 |
+| Completed 历史批次 | 无别的活跃 batch，且原 root / parent / 备份 / Apply 后目标仍匹配时可 Historical Restore。归档目标必须空闲；编辑目标字节、身份、mtime 必须匹配。后来改动或新批次则拒绝并保留。 |
 
-D 盘不可用或无写权限时，保留原件、停止本批并报告，不改用 C 盘或项目内分散归档。跨盘先复制并核对哈希，再完成移动；失败保留原件。
+归档从 D 盘复制原字节到新建目标；编辑恢复在受保护句柄中进行。验证原字节后进入 Restored 并释放自己的 lease。历史恢复保留旧 completion receipt，但当前状态不再是 Completed。
 
-整文件移入归档；局部编辑备份实际工作区原字节，不能用 Git HEAD 代替未提交内容。`manifest.json` 记录项目根路径、范围、原/备份路径、处置、前/后哈希（移走为 `absent`）、依据与检查；编辑另存仅含本轮改动的可逆补丁。无 Git 也保留备份和差异。
-
-## 按指定批次恢复
-
-1. 告诉 Agent 目标项目和本批 `manifest.json` 的实际位置。只读取清单及本批所需原件，不扫描旧归档。
-2. 核对项目根归属、范围、原/目标路径、链接、路径逃逸和覆盖冲突。
-3. 比对当前目标与本轮后状态：一致才直接恢复；后续有修改，则比对本轮补丁并安全合并。
-4. 同名新文件不可覆盖；不能安全合并时，保留两份和现状并报告冲突。禁止全局 reset/clean 或整文件恢复覆盖后续用户内容。
-5. 在会话交接已恢复项、实际检查与剩余冲突。不要把存在备份误当作“已经恢复”。
-
-![清理流程与停止条件](../assets/workflow.png)
-
-[回到三种使用请求](../README.md#快速开始选择你的任务) · [查看完整原始方法](../SKILL.md) · [恢复图源](../assets/diagram-source/recovery.json) · [离线恢复 HTML](recovery/index.html)
+备份位于 `D:/project-bath/<项目名-根路径hash>/<唯一批次>/`。工具不自动清理历史归档，不承诺恢复完整 ACL / owner / 时间元数据。工具拒绝时，交接诊断与保留证据，由用户与 Agent 决定后续处理。
