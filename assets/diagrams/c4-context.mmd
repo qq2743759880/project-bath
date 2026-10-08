@@ -1,0 +1,10 @@
+C4Context
+  title 项目洗澡系统上下文
+  Person(maintainer, "项目维护者", "指定清理范围与保留项")
+  System(bath, "本地项目洗澡执行系统", "Agent 判断并通过工具执行受守卫批次")
+  System_Ext(workspace, "项目工作区", "固定本地 NTFS 普通文件")
+  System_Ext(archive, "D 盘批次保存区", "修改文件原字节、事件与检查视图")
+  Rel(maintainer, bath, "提交清理请求", "宿主对话")
+  Rel(bath, workspace, "核验与受守卫修改或恢复", "本地文件 API")
+  Rel(bath, archive, "先保存并核验原字节及检查证据", "本地文件 API")
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

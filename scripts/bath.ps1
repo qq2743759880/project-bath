@@ -1,6 +1,7 @@
+[CmdletBinding()]
 param(
     [ValidateSet('Help','Prepare','Status','Apply','Restore','Finalize','Cancel','Check','Close')][string]$Action = 'Help',
-    [string]$Root, [string]$Plan, [string]$Batch, [string]$CheckScript, [string]$Receipt
+    [string]$Root, [string]$Plan, [string]$Batch, [string]$CheckScript, [string]$Receipt, [string]$Scope, [switch]$Group
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -101,6 +102,64 @@ public static class BathNative {
         try { Marshal.WriteInt32(b,1); if(!SetFileInformationByHandle(f.SafeFileHandle,4,b,4)) Error("RETIRE_FAILED"); }
         finally { Marshal.FreeHGlobal(b); }
     }
+    // Same-parent handle rename, validated by retained disposable Native seam proofs.
+    [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+    struct RenameInfo { public uint ReplaceIfExists; public IntPtr RootDirectory; public uint FileNameLength; public ushort FirstCharacter; }
+    [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+    struct StreamData { public long Size; [MarshalAs(UnmanagedType.ByValTStr, SizeConst=296)] public string Name; }
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    static extern IntPtr FindFirstStreamW(string path,int level,out StreamData data,uint flags);
+    [DllImport("kernel32.dll", SetLastError=true)]
+    static extern bool FindClose(IntPtr handle);
+
+    public static void OrdinaryDirectory(SafeFileHandle h,string path) {
+        var i=Get(h);
+        if((i.Attributes&16)==0 || (i.Attributes&~(uint)(16|32|128))!=0)
+            throw new IOException("UNSUPPORTED_DIRECTORY: attributes or non-directory");
+        FinalPath(h,path);
+        var b=Marshal.AllocHGlobal(4);
+        try { if(!GetFileInformationByHandleEx(h,23,b,4)) Error("CASE_INFO_UNAVAILABLE");
+            if(Marshal.ReadInt32(b)!=0) throw new IOException("UNSUPPORTED_DIRECTORY: case-sensitive directory"); }
+        finally { Marshal.FreeHGlobal(b); }
+        StreamData streams;
+        var search=FindFirstStreamW(path,0,out streams,0);
+        if(search==new IntPtr(-1)) {
+            int code=Marshal.GetLastWin32Error();
+            if(code!=38) throw new IOException("DIRECTORY_STREAM_INFO_FAILED: win32="+code+" "+new Win32Exception(code).Message);
+        } else {
+            FindClose(search);
+            throw new IOException("UNSUPPORTED_DIRECTORY: alternate data streams");
+        }
+    }
+    public static SafeFileHandle DirectoryMutation(string path) {
+        var h=CreateFileW(path,0x10080,1,IntPtr.Zero,3,0x02200000,IntPtr.Zero);
+        if(h.IsInvalid) { h.Dispose(); Error("DIRECTORY_MUTATION_LOCK_FAILED"); }
+        try { OrdinaryDirectory(h,path); return h; } catch { h.Dispose(); throw; }
+    }
+    public static void RenameDirectoryNoReplace(SafeFileHandle h,string destination) {
+        if(!Path.IsPathFullyQualified(destination)) throw new IOException("BAD_RENAME_PATH: absolute destination required");
+        var current=new StringBuilder(520);
+        uint count=GetFinalPathNameByHandleW(h,current,520,0);
+        if(count==0 || count>=520 || !current.ToString().StartsWith(@"\\?\")) Error("FINAL_PATH_FAILED");
+        string source=current.ToString().Substring(4), target=Path.GetFullPath(destination);
+        if(!String.Equals(Path.GetDirectoryName(source),Path.GetDirectoryName(target),StringComparison.OrdinalIgnoreCase) || String.Equals(source,target,StringComparison.OrdinalIgnoreCase) || Path.GetFileName(target).IndexOf(':')>=0)
+            throw new IOException("BAD_RENAME_PATH: distinct same-parent basename required");
+        OrdinaryDirectory(h,source);
+        byte[] name=Encoding.Unicode.GetBytes(target);
+        int offset=Marshal.OffsetOf<RenameInfo>("FirstCharacter").ToInt32();
+        var buffer=Marshal.AllocHGlobal(offset+name.Length+2);
+        try {
+            Marshal.Copy(new byte[offset+name.Length+2],0,buffer,offset+name.Length+2);
+            Marshal.WriteInt32(buffer,Marshal.OffsetOf<RenameInfo>("FileNameLength").ToInt32(),name.Length);
+            Marshal.Copy(name,0,IntPtr.Add(buffer,offset),name.Length);
+            if(!SetFileInformationByHandle(h,3,buffer,(uint)(offset+name.Length+2))) {
+                int code=Marshal.GetLastWin32Error();
+                throw new IOException("RENAME_FAILED: win32="+code+" "+new Win32Exception(code).Message);
+            }
+            FinalPath(h,target);
+        } finally { Marshal.FreeHGlobal(buffer); }
+    }
+
 }
 '@
 }
@@ -181,9 +240,10 @@ function Read-Plan([byte[]]$Bytes) {
     return $e
 }
 
-function Write-Event([string]$BatchPath,[string]$State,[string]$ManifestHash,[string]$TargetId='',[long]$WriteTime=0,[string]$EvidenceHash='',[string]$ReceiptName='') {
+function Write-Event([string]$BatchPath,[string]$State,[string]$ManifestHash,[string]$TargetId='',[long]$WriteTime=0,[string]$EvidenceHash='',[string]$ReceiptName='',[string]$CheckAttemptId='') {
     $path = Join-Path $BatchPath 'journal.jsonl'
     $record = @{state=$State; manifest_sha256=$ManifestHash; target_id=$TargetId; write_time=$WriteTime; utc=[DateTime]::UtcNow.ToString('o'); event_id=[Guid]::NewGuid().ToString('N')}
+    if ($CheckAttemptId) { $record.check_attempt_event_id=$CheckAttemptId; if($State -ceq 'CheckStarted'){$record.event_id=$CheckAttemptId} }
     if ($EvidenceHash) { $record.receipt_sha256=$EvidenceHash; $record.receipt_name=$ReceiptName }
     $bytes = [Text.Encoding]::UTF8.GetBytes(($record | ConvertTo-Json -Compress)+"`n")
     $f = [IO.FileStream]::new($path,[IO.FileMode]::Append,[IO.FileAccess]::Write,[IO.FileShare]::Read)
@@ -196,8 +256,8 @@ function Read-Events([string]$BatchPath,[string]$ManifestHash) {
     if (!$raw.EndsWith("`n")) { throw 'INCOMPLETE_JOURNAL: preserve files and inspect last operation' }
     $events = @($raw.TrimEnd("`n").Split("`n") | ForEach-Object { $_ | ConvertFrom-Json -AsHashtable })
     foreach ($event in $events) {
-        Check-Keys $event @('state','manifest_sha256','target_id','write_time','utc','event_id') @('receipt_sha256','receipt_name')
-        if ($event.manifest_sha256 -cne $ManifestHash -or $event.state -cnotin @('BackedUp','Applying','Applied','Restoring','Restored','Checked','Completed')) { throw 'BAD_JOURNAL: binding or state mismatch' }
+        Check-Keys $event @('state','manifest_sha256','target_id','write_time','utc','event_id') @('receipt_sha256','receipt_name','check_attempt_event_id')
+        if ($event.manifest_sha256 -cne $ManifestHash -or $event.state -cnotin @('BackedUp','Applying','Applied','Restoring','Restored','CheckStarted','Checked','Completed')) { throw 'BAD_JOURNAL: binding or state mismatch' }
     }
     return ,$events
 }
@@ -238,7 +298,7 @@ function Read-CheckTree([string]$Tree,$Pins,[string]$CopyTo='') {
                 if ($CopyTo) { [void][IO.Directory]::CreateDirectory((Get-LocalPath (Join-Path $CopyTo $relative))) }
                 $queue.Enqueue($full)
             } else {
-                if (++$count -gt 2048 -or ([IO.FileInfo]::new($full)).Length -gt 16777216) { throw 'CHECK_SCOPE: file count/size exceeds bounded check view' }
+                if (([IO.FileInfo]::new($full)).Length -gt 16777216) { throw 'CHECK_SCOPE: file size exceeds bounded check view' }
                 $snapshot=Read-PinnedFile $full $Pins
                 $total+=$snapshot.Bytes.Length
                 if ($total -gt 67108864) { throw 'CHECK_SCOPE: check view exceeds 64 MiB' }
@@ -270,12 +330,144 @@ function Run-Check([string]$ScriptFile,[string]$ProjectRoot) {
     } finally { $p.Dispose() }
 }
 
+function Get-ScopedRuntime($Pins) {
+    $hashes=[ordered]@{}
+    foreach($name in @('bath.ps1','bath-scope.ps1','bath-view.ps1')) {
+        $hashes[$name]=(Read-PinnedFile (Join-Path $PSScriptRoot $name) $Pins).Hash
+    }
+    return $hashes
+}
+
+function Assert-ScopedRuntime($Expected,$Pins) {
+    Check-Keys $Expected @('bath.ps1','bath-scope.ps1','bath-view.ps1')
+    $current=Get-ScopedRuntime $Pins
+    foreach($name in $current.Keys) {
+        if($current[$name] -cne $Expected[$name]) { throw 'TOOL_CHANGED: scoped runtime changed; Restore remains available' }
+    }
+}
+
+function Get-ScopedHash($Snapshot) {
+    $data=ConvertFrom-Json -InputObject (ConvertTo-Json -InputObject $Snapshot -Depth 20 -Compress) -AsHashtable
+    [void]$data.Remove('snapshot_sha256')
+    return [BathNative]::Hash([Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -InputObject $data -Depth 20 -Compress)))
+}
+
+function Read-ScopedState($M,[string]$BatchPath,[string]$RootPath,$Pins,$ApplyEvent=$null,$After=$null) {
+    $binding=$M.check_scope
+    Check-Keys $binding @('schema_version','scope_sha256','scope_id','scope_write_time','before_snapshot_sha256','runtime_sha256')
+    if($binding.schema_version -ne 1) { throw 'BAD_SCOPE_BINDING: unsupported binding' }
+    Assert-ScopedRuntime $binding.runtime_sha256 $Pins
+    . (Join-Path $PSScriptRoot 'bath-scope.ps1')
+    $scopePath=Join-Path $BatchPath 'scope.json'
+    $scopeBytes=Read-PinnedFile $scopePath $Pins
+    if($scopeBytes.Hash -cne $binding.scope_sha256 -or $scopeBytes.Id -cne $binding.scope_id -or $scopeBytes.WriteTime.ToString() -cne $binding.scope_write_time) { throw 'SCOPE_CHANGED: saved scope bytes or identity changed' }
+    $before=Read-PinnedFile (Join-Path $BatchPath 'scope-before.json') $Pins
+    if($before.Hash -cne $binding.before_snapshot_sha256) { throw 'SCOPE_CHANGED: Prepare input snapshot changed' }
+    $expected=ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString($before.Bytes)) -AsHashtable -Depth 20
+    if((Get-ScopedHash $expected) -cne $expected.snapshot_sha256) { throw 'BAD_SCOPE_BINDING: invalid Prepare snapshot' }
+    $relative=$M.path.Replace('\','/')
+    if($ApplyEvent) {
+        $old=@($expected.files | Where-Object {$_.path.Equals($relative,[StringComparison]::OrdinalIgnoreCase)})
+        if($old.Count -ne 1) { throw 'BAD_SCOPE_BINDING: target missing from prepared inputs' }
+        $expected.stats.total_bytes-=$old[0].bytes
+        if($M.action -eq 'archive') {
+            $expected.files=@($expected.files | Where-Object {!$_.path.Equals($relative,[StringComparison]::OrdinalIgnoreCase)})
+            $expected.stats.files=$expected.files.Count
+        } else {
+            $old[0].sha256=$M.after_sha256; $old[0].id=$ApplyEvent.target_id
+            $old[0].write_time=$ApplyEvent.write_time.ToString(); $old[0].bytes=$After.Bytes.Length
+            $expected.stats.total_bytes+=$old[0].bytes
+        }
+    }
+    $current=Read-BathScope -Root $RootPath -Scope $scopePath -ProtectedPaths $relative
+    if($current.snapshot_sha256 -cne (Get-ScopedHash $expected)) { throw 'SCOPE_CHANGED: selected project state differs from the bound batch transition' }
+    return $current
+}
+
+function Invoke-ScopedView([string]$RootPath,[string]$ScopePath,[string]$ScriptPath,[string]$Relative,[int]$Timeout) {
+    # ponytail: reuse the proven CLI; this parent only bounds its control output.
+    $start=[Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
+    $start.UseShellExecute=$false; $start.CreateNoWindow=$true
+    $start.RedirectStandardOutput=$true; $start.RedirectStandardError=$true
+    $start.StandardOutputEncoding=[Text.Encoding]::UTF8; $start.StandardErrorEncoding=[Text.Encoding]::UTF8
+    foreach($arg in @('-NoProfile','-File',(Join-Path $PSScriptRoot 'bath-view.ps1'),'-Root',$RootPath,'-Scope',$ScopePath,'-CheckScript',$ScriptPath,'-ProtectedPaths',$Relative)) { $start.ArgumentList.Add($arg) }
+    $process=[Diagnostics.Process]::new();$process.StartInfo=$start
+    try {
+        [void]$process.Start();$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
+        if(!$process.WaitForExit(($Timeout*4+20)*1000)) {
+            $process.Kill($true)
+            if(!$process.WaitForExit(10000)) { throw 'CHECK_TIMEOUT: scoped worker did not stop' }
+            throw 'CHECK_TIMEOUT: scoped worker exceeded bounded preparation/check/guard time'
+        }
+        $json=$stdout.GetAwaiter().GetResult();$diagnostic=$stderr.GetAwaiter().GetResult()
+        $result=ConvertFrom-Json -InputObject $json -AsHashtable -Depth 20
+        if(!$result.ok) { throw ($result.error_code+': '+$result.message) }
+        if($process.ExitCode -ne 0 -or $result.status -cne 'LabPassed' -or $result.eligible_for_finalize -ne $false) { throw 'CHECK_FAILED: invalid lab outcome' }
+        return $result
+    } finally { $process.Dispose() }
+}
+
+function Read-RetainedEvidence([string]$Run,[string]$Inspection,$Pins) {
+    . (Join-Path $PSScriptRoot 'bath-scope.ps1')
+    $full=Get-LocalPath $Run
+    if(!$full.StartsWith('D:\project-bath\',[StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetFileName($full) -cnotmatch '^view-[a-f0-9-]{36}$') { throw 'BAD_RECEIPT: invalid retained run path' }
+    [void](Pin-Directory $full $Pins)
+    $snapshot=Read-BathScope -Root $full -Scope $Inspection
+    foreach($file in $snapshot.files) {
+        $bound=Read-PinnedFile (Join-Path $full $file.path) $Pins
+        if($bound.Hash -cne $file.sha256 -or $bound.Id -cne $file.id -or $bound.WriteTime.ToString() -cne $file.write_time) { throw 'EVIDENCE_CHANGED: retained file changed during inspection' }
+    }
+    foreach($directory in $snapshot.directories) {
+        $path=if($directory.path -eq '.') {$full} else {Join-Path $full $directory.path}
+        if((Pin-Directory $path $Pins) -cne $directory.id) { throw 'EVIDENCE_CHANGED: retained directory identity changed' }
+    }
+    return $snapshot
+}
+
+function Copy-PinnedCheck([string]$Path,$Snapshot,$Pins) {
+    [BathNative]::WriteNew($Path,$Snapshot.Bytes)
+    $copy=Read-PinnedFile $Path $Pins
+    if($copy.Hash -cne $Snapshot.Hash) { throw 'CHECK_SCRIPT_CHANGED: copied check differs from selected script' }
+    return $copy
+}
+
+function Assert-LabEvidence($Lab,$Retained,[string]$Run,[string]$ScriptHash,$scopeSnapshot,$Pins) {
+    # Validate original lab evidence before sealing it; a new hash cannot bless tampering.
+    $hashes=@{'stdout.log'=$Lab.stdout_sha256;'stderr.log'=$Lab.stderr_sha256;'check.ps1'=$ScriptHash;'scope.json'=$scopeSnapshot.scope_sha256;'launch.ps1'=$Lab.runtime_sha256['launch.ps1'];'process-evidence.json'=$Lab.process_evidence_sha256;'input-bindings.json'=$Lab.input_bindings_sha256;'view-source-before.json'=$Lab.view_source_before_sha256;'view-source-after.json'=$Lab.view_source_after_sha256}
+    foreach($name in $hashes.Keys) {
+        $file=@($Retained.files | Where-Object {$_.path -ceq $name})
+        if($file.Count -ne 1 -or $file[0].sha256 -cne $hashes[$name]) { throw 'EVIDENCE_CHANGED: original lab evidence changed before seal' }
+    }
+    $expectedInspection=[ordered]@{schema_version=1;inputs=@('.');excluded=@();outputs=@();limits=$scopeSnapshot.limits}
+    $inspectHash=[BathNative]::Hash([Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -InputObject $expectedInspection -Depth 25 -Compress)))
+    $internal=@($Retained.files | Where-Object {$_.path -ceq 'inspect-scope.json'})
+    if($internal.Count -ne 1 -or $internal[0].sha256 -cne $inspectHash) { throw 'EVIDENCE_CHANGED: lab inspection control changed' }
+    $inputSnapshot=Get-Json (Join-Path $Run 'input-snapshot.json')
+    if((Get-ScopedHash $inputSnapshot) -cne $Lab.input_snapshot_sha256 -or $Lab.input_snapshot_sha256 -cne $scopeSnapshot.snapshot_sha256) { throw 'EVIDENCE_CHANGED: original lab input snapshot changed' }
+    $ledger=Get-Json (Join-Path $Run 'view-source-after.json')
+    $allowedFiles=@()
+    foreach($entry in @($ledger.files)+@($Lab.outputs.files)) {
+        $path='view/'+$entry.path; $allowedFiles+=,$path
+        $actual=@($Retained.files | Where-Object {$_.path -ceq $path})
+        if($actual.Count -ne 1 -or $actual[0].sha256 -cne $entry.sha256 -or $actual[0].bytes -ne $entry.bytes) { throw 'EVIDENCE_CHANGED: lab source/output bytes changed before seal' }
+        if($entry.Contains('id') -and ($actual[0].id -cne $entry.id -or $actual[0].write_time -cne $entry.write_time)) { throw 'EVIDENCE_CHANGED: lab source identity changed before seal' }
+    }
+    foreach($entry in $ledger.directories) {
+        $path=if($entry.path -eq '.') {'view'} else {'view/'+$entry.path}
+        $actual=@($Retained.directories | Where-Object {$_.path -ceq $path})
+        if($actual.Count -ne 1 -or $actual[0].id -cne $entry.id) { throw 'EVIDENCE_CHANGED: lab source parent identity changed before seal' }
+    }
+    $allowedDirs=@($ledger.directories | ForEach-Object {if($_.path -eq '.'){'view'}else{'view/'+$_.path}})+@($Lab.outputs.directories | ForEach-Object {'view/'+$_})
+    foreach($entry in $Retained.files) { if($entry.path.StartsWith('view/') -and $entry.path -cnotin $allowedFiles) { throw 'EVIDENCE_CHANGED: unrecorded lab view file' } }
+    foreach($entry in $Retained.directories) { if(($entry.path -eq 'view' -or $entry.path.StartsWith('view/')) -and $entry.path -cnotin $allowedDirs) { throw 'EVIDENCE_CHANGED: unrecorded lab view directory' } }
+}
+
 function Invoke-Bath {
     $pins = [Collections.Generic.List[IDisposable]]::new()
     $projectLock = $null; $source = $null; $createdBatch = $null
     try {
         if ($Action -eq 'Help') {
-            return @{ok=$true; operations=@('Prepare','Status','Apply','Restore','Cancel','Check','Finalize','Close'); requires='Windows, PowerShell 7.4+, local fixed NTFS; one regular file <=16 MiB'; plan='schema_version=1; entries=[{path,action:archive|edit,before_sha256,after_sha256:absent|hash,evidence,replacement_path(for edit)}]'; archive='D:/project-bath'; checks='Check runs trusted read-only PowerShell on retained D view; original read locks and tree change detection; limits 2048 files/512 directories/64 MiB/30s; Finalize -Receipt <returned receipt>'; limits='Close only stops ambiguous/conflicted batches without restoring; Agent selects meaningful checks; no semantic correctness proof, merge or host-wide enforcement'}
+            return @{ok=$true; operations=@('Prepare','Status','Apply','Restore','Cancel','Check','Finalize','Close'); requires='Windows, PowerShell 7.4+, local fixed NTFS; ordinary files <=16 MiB each; default one file, -Group for related files'; plan='schema_version=1; entries=[{path,action:archive|edit,before_sha256,after_sha256:absent|hash,evidence,replacement_path(for edit)}]'; archive='D:/project-bath'; group='Use -Group: schema2 related file edit/archive; schema4 one same-parent directory rename plus associated original-path file entries. Prepare,Status,Apply,Restore,Check,Finalize,Close. All edited/archive originals saved before rename; other moved children have namespace evidence only. Latest CheckStarted attempt required; no ACID, tree-byte backup or merge'; scoped='Prepare optionally takes -Scope JSON; one file archive/edit; scoped Check scripts take -ViewRoot and may create declared outputs; schema4 maps scope paths after rename'; checks='Check runs trusted read-only PowerShell on retained D view; original read locks and tree change detection; no fixed file-count limit; 512 directories/64 MiB/30s; Finalize -Receipt <returned receipt>'; limits='Close only stops ambiguous/conflicted batches without restoring; Agent selects meaningful checks; no semantic correctness proof, merge or host-wide enforcement'}
         }
         if (!$IsWindows -or $PSVersionTable.PSVersion -lt [version]'7.4') { throw 'UNSUPPORTED_HOST: PowerShell 7.4+ on Windows required' }
         Initialize-Native
@@ -286,6 +478,26 @@ function Invoke-Bath {
         $rootHash = [BathNative]::Hash([Text.Encoding]::UTF8.GetBytes($canonical))
         $projectName = [IO.Path]::GetFileName($rootPath)
         $projectPath = Join-Path $script:ArchiveRoot ($projectName+'-'+$rootHash.Substring(0,8))
+        $scopePre=$null; $scopeInput=$null; $scopeRuntime=$null
+        if($Scope -and $Action -ne 'Prepare') { throw 'BAD_SCOPE: Scope is frozen by Prepare; do not override it later' }
+        if($Action -eq 'Prepare' -and $Scope) {
+            . (Join-Path $PSScriptRoot 'bath-scope.ps1')
+            $scopeRuntime=Get-ScopedRuntime $pins
+            $prePlan=Read-Plan ([BathNative]::Read((Get-LocalPath $Plan))).Bytes
+            $scopePath=Get-LocalPath $Scope
+            [void](Pin-Directory ([IO.Path]::GetDirectoryName($scopePath)) $pins)
+            $scopeInput=Read-PinnedFile $scopePath $pins
+            $scopePre=Read-BathScope -Root $rootPath -Scope $scopePath -ProtectedPaths $prePlan.path.Replace('\','/')
+            foreach($file in $scopePre.files) {
+                foreach($prefix in $scopePre.outputs) {
+                    if(Test-ScopeUnder $file.path $prefix) { throw 'VIEW_SCOPE_CONFLICT: selected source intersects writable output; explicitly exclude generated content' }
+                }
+            }
+            $scopeData=ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString($scopeInput.Bytes)) -AsHashtable
+            if($scopePre.scope_sha256 -cne $scopeInput.Hash) { throw 'SCOPE_CHANGED: scope changed during preflight' }
+            if($prePlan.action -eq 'archive' -and @($scopeData.inputs | Where-Object {$_.Equals($prePlan.path.Replace('\','/'),[StringComparison]::OrdinalIgnoreCase)}).Count) { throw 'SCOPE_ARCHIVE_SELECTOR: archive requires an existing parent/root input selector' }
+        }
+
         [void](Pin-Directory 'D:\' $pins)
         if ($Action -eq 'Prepare') { New-PinnedDirectory $script:ArchiveRoot $pins; New-PinnedDirectory $projectPath $pins }
         else { [void](Pin-Directory $projectPath $pins) }
@@ -325,6 +537,12 @@ function Invoke-Bath {
                 $after = [BathNative]::Read($payloadPath)
                 if ($after.Hash -cne $entry.after_sha256) { throw 'PAYLOAD_CHANGED: replacement does not match approved hash' }
             }
+            if($scopePre) {
+                $again=Read-BathScope -Root $rootPath -Scope $scopePath -ProtectedPaths $entry.path.Replace('\','/')
+                if($again.snapshot_sha256 -cne $scopePre.snapshot_sha256) { throw 'SCOPE_CHANGED: project changed during Prepare preflight' }
+                if($after -and ($after.Bytes.Length -gt $scopePre.limits.max_file_bytes -or $scopePre.stats.total_bytes-$before.Bytes.Length+$after.Bytes.Length -gt $scopePre.limits.max_total_bytes)) { throw 'SCOPE_LIMIT: replacement exceeds scoped file/total byte budget' }
+                Assert-ScopedRuntime $scopeRuntime $pins
+            }
             $batchName = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff')+'-'+[Guid]::NewGuid().ToString('N')
             $createdBatch = Join-Path $projectPath $batchName
             New-PinnedDirectory $createdBatch $pins
@@ -341,6 +559,13 @@ function Invoke-Bath {
             if ($copy.Hash -cne $before.Hash) { throw 'BACKUP_FAILED: copied bytes mismatch' }
             if ($null -ne $after) { [BathNative]::WriteNew((Join-Path $createdBatch 'after.bin'),$after.Bytes) }
             $manifest = @{schema_version=1; slice='v0.2.0-slice1'; tool_sha256=(Get-FileHash -LiteralPath $script:ToolPath -Algorithm SHA256).Hash.ToLowerInvariant(); canonical_root=$canonical; root_id=$rootId; parent_id=$parentId; batch=$batchName; path=$entry.path; action=$entry.action; plan_sha256=$planSnapshot.Hash; before_sha256=$before.Hash; before_id=$before.Id; before_write_time=$before.WriteTime; after_sha256=$entry.after_sha256; backup_id=$copy.Id}
+            if($scopePre) {
+                $savedScope=Join-Path $createdBatch 'scope.json'
+                [BathNative]::WriteNew($savedScope,$scopeInput.Bytes)
+                $saved=Read-PinnedFile $savedScope $pins
+                New-Json (Join-Path $createdBatch 'scope-before.json') $scopePre
+                $manifest.check_scope=@{schema_version=1;scope_sha256=$saved.Hash;scope_id=$saved.Id;scope_write_time=$saved.WriteTime.ToString();before_snapshot_sha256=([BathNative]::Read((Join-Path $createdBatch 'scope-before.json'))).Hash;runtime_sha256=$scopeRuntime}
+            }
             $manifestPath = Join-Path $createdBatch 'manifest.json'
             New-Json $manifestPath $manifest
             $manifestHash = ([BathNative]::Read($manifestPath)).Hash
@@ -445,7 +670,7 @@ function Invoke-Bath {
         }
         $manifestSnapshot = Read-PinnedFile $manifestPath $pins
         $m = [Text.UTF8Encoding]::new($false,$true).GetString($manifestSnapshot.Bytes) | ConvertFrom-Json -AsHashtable -Depth 20
-        Check-Keys $m @('schema_version','slice','tool_sha256','canonical_root','root_id','parent_id','batch','path','action','plan_sha256','before_sha256','before_id','before_write_time','after_sha256','backup_id')
+        Check-Keys $m @('schema_version','slice','tool_sha256','canonical_root','root_id','parent_id','batch','path','action','plan_sha256','before_sha256','before_id','before_write_time','after_sha256','backup_id') @('check_scope')
         if ($m.schema_version -ne 1 -or $m.canonical_root -cne $canonical -or $m.root_id -cne $rootId -or $m.batch -cne [IO.Path]::GetFileName($batchPath)) { throw 'BAD_MANIFEST: project or batch mismatch' }
         $storedPlan = Read-PinnedFile (Join-Path $batchPath 'plan.json') $pins
         $entry = Read-Plan $storedPlan.Bytes
@@ -471,23 +696,57 @@ function Invoke-Bath {
             }
             elseif ($last.state -eq 'Restored' -and $current -and $current.Hash -ceq $m.before_sha256 -and $current.Id -ceq $last.target_id -and $current.WriteTime -eq $last.write_time) { $observed='Restored' }
             elseif ($last.state -eq 'Restoring') { $observed='InterruptedRestore' }
-            elseif ($m.action -eq 'archive' -and !$current -and ![IO.Directory]::Exists($target) -and $last.state -in @('Applied','Applying','Checked')) { $observed= if($last.state -eq 'Applying'){'AppliedUnconfirmed'}else{$last.state} }
+            elseif ($m.action -eq 'archive' -and !$current -and ![IO.Directory]::Exists($target) -and $last.state -in @('Applied','Applying','Checked','CheckStarted')) { $observed= if($last.state -eq 'Applying'){'AppliedUnconfirmed'}else{$last.state} }
             elseif ($current -and $current.Hash -ceq $m.before_sha256 -and $current.Id -ceq $m.before_id -and $current.WriteTime -eq $m.before_write_time -and $last.state -in @('BackedUp','Applying')) { $observed=if($last.state -eq 'BackedUp'){'BackedUp'}else{'BackedUpInterrupted'} }
-            elseif ($m.action -eq 'edit' -and $current -and $current.Hash -ceq $m.after_sha256 -and $current.Id -ceq $m.before_id -and $last.state -in @('Applied','Applying','Checked')) { $observed=if($applyEvent -and $current.WriteTime -eq $applyEvent.write_time){$last.state}elseif($last.state -eq 'Applying'){'AppliedUnconfirmed'}else{'Conflict'} }
+            elseif ($m.action -eq 'edit' -and $current -and $current.Hash -ceq $m.after_sha256 -and $current.Id -ceq $m.before_id -and $last.state -in @('Applied','Applying','Checked','CheckStarted')) { $observed=if($applyEvent -and $current.WriteTime -eq $applyEvent.write_time){$last.state}elseif($last.state -eq 'Applying'){'AppliedUnconfirmed'}else{'Conflict'} }
             return @{ok=$true; state=$last.state; observed=$observed; batch=$batchPath; backup_valid=$true; last_event_id=$last.event_id; manifest_sha256=$manifestSnapshot.Hash}
         }
         $lease = Get-Json $leasePath; Check-Keys $lease @('owner') @('intent_sha256')
         if ($lease.owner -cne $m.batch -and $last.state -notin @('Restored','Completed')) { throw 'PROJECT_BUSY: batch is not active project owner' }
         if ($Action -eq 'Check') {
-            if ($last.state -notin @('Applied','Checked') -or !$applyEvent) { throw 'BAD_STATE: Check requires a confirmed Apply' }
+            if ($last.state -notin @('Applied','Checked','CheckStarted') -or !$applyEvent) { throw 'BAD_STATE: Check requires a confirmed Apply' }
+            $checkAttemptId=[Guid]::NewGuid().ToString('N')
+            Write-Event $batchPath 'CheckStarted' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time '' '' $checkAttemptId
+            if($m.Contains('check_scope')) {
+                $scopeSnapshot=Read-ScopedState $m $batchPath $rootPath $pins $applyEvent $after
+                $pre=Get-PostState $target $m $applyEvent $pins
+                $scriptPath=Get-LocalPath $CheckScript
+                [void](Pin-Directory ([IO.Path]::GetDirectoryName($scriptPath)) $pins)
+                $scriptSnapshot=Read-PinnedFile $scriptPath $pins
+                $receiptId=[Guid]::NewGuid().ToString('N')
+                $checkCopy=Join-Path $batchPath ('check-'+$receiptId+'.ps1')
+                $checkSnapshot=Copy-PinnedCheck $checkCopy $scriptSnapshot $pins
+                $started=[DateTime]::UtcNow
+                $lab=Invoke-ScopedView $rootPath (Join-Path $batchPath 'scope.json') $checkCopy $m.path.Replace('\','/') $scopeSnapshot.limits.timeout_seconds
+                $finished=[DateTime]::UtcNow
+                $labPath=Get-LocalPath $lab.receipt_path
+                if([IO.Path]::GetDirectoryName($labPath) -cne $lab.run_directory -or [IO.Path]::GetFileName($labPath) -cne 'receipt.json') { throw 'BAD_RECEIPT: lab path mismatch' }
+                $labBytes=Read-PinnedFile $labPath $pins
+                $lr=ConvertFrom-Json -InputObject ([Text.Encoding]::UTF8.GetString($labBytes.Bytes)) -AsHashtable
+                if($lr.status -cne 'LabPassed' -or $lr.eligible_for_finalize -ne $false -or $lr.scope_sha256 -cne $m.check_scope.scope_sha256 -or $lr.original_source_after_sha256 -cne $scopeSnapshot.snapshot_sha256) { throw 'CHECK_FAILED: lab source binding failed' }
+                $current=Read-ScopedState $m $batchPath $rootPath $pins $applyEvent $after
+                $post=Get-PostState $target $m $applyEvent $pins
+                if(!(Same-PostState $pre $post)) { throw 'POST_CHANGED: target changed during scoped Check' }
+                $inspectionName='scoped-inspect-'+$receiptId+'.json';$inspection=Join-Path $batchPath $inspectionName
+                $evidenceFileLimit=if($scopeSnapshot.limits.max_files -eq 0){0}else{$scopeSnapshot.limits.max_files+64}
+                $limits=[ordered]@{max_files=$evidenceFileLimit;max_directories=[Math]::Min(100000,$scopeSnapshot.limits.max_directories+16);max_file_bytes=16777216;max_total_bytes=[Math]::Min(1073741824,$scopeSnapshot.limits.max_total_bytes+67108864);timeout_seconds=$scopeSnapshot.limits.timeout_seconds}
+                New-Json $inspection ([ordered]@{schema_version=1;inputs=@('.');limits=$limits})
+                $inspectionBytes=Read-PinnedFile $inspection $pins
+                $retained=Read-RetainedEvidence $lab.run_directory $inspection $pins
+                Assert-LabEvidence $lr $retained $lab.run_directory $scriptSnapshot.Hash $scopeSnapshot $pins
+                $receiptName='receipt-'+$receiptId+'.json';$receiptPath=Join-Path $batchPath $receiptName
+                New-Json $receiptPath @{check_attempt_event_id=$checkAttemptId;schema_version=2;batch=$m.batch;canonical_root=$canonical;manifest_sha256=$manifestSnapshot.Hash;apply_event_id=$applyEvent.event_id;apply_utc=$applyEvent.utc;post_state=$post;started_utc=$started.ToString('o');finished_utc=$finished.ToString('o');passed=$true;exit_code=$lr.exit_code;scope_sha256=$m.check_scope.scope_sha256;input_snapshot_sha256=$current.snapshot_sha256;runtime_sha256=$m.check_scope.runtime_sha256;lab_receipt_path=$labPath;lab_receipt_sha256=$labBytes.Hash;retained_root=$lab.run_directory;retained_scope_name=$inspectionName;retained_scope_sha256=$inspectionBytes.Hash;retained_snapshot_sha256=$retained.snapshot_sha256}
+                $receiptHash=([BathNative]::Read($receiptPath)).Hash
+                Write-Event $batchPath 'Checked' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time $receiptHash $receiptName $checkAttemptId
+                return @{ok=$true;state='Checked';passed=$true;receipt=$receiptPath;batch=$batchPath;side_effect_guard=$true;semantic_correctness='Agent-selected scoped check; not semantic proof or host sandbox'}
+            }
             $pre=Get-PostState $target $m $applyEvent $pins
             $scriptPath=Get-LocalPath $CheckScript
             [void](Pin-Directory ([IO.Path]::GetDirectoryName($scriptPath)) $pins)
             $scriptSnapshot=Read-PinnedFile $scriptPath $pins
             $receiptId=[Guid]::NewGuid().ToString('N')
             $checkCopy=Join-Path $batchPath ('check-'+$receiptId+'.ps1')
-            [BathNative]::WriteNew($checkCopy,$scriptSnapshot.Bytes)
-            $checkSnapshot=Read-PinnedFile $checkCopy $pins
+            $checkSnapshot=Copy-PinnedCheck $checkCopy $scriptSnapshot $pins
             $view=Join-Path $batchPath ('view-'+$receiptId)
             New-PinnedDirectory $view $pins
             $original=Read-CheckTree $rootPath $pins $view
@@ -507,9 +766,9 @@ function Invoke-Bath {
             if (!(Same-PostState $pre $post)) { throw 'POST_CHANGED: target changed during check' }
             $passed=$check.exit_code -eq 0 -and $guard
             $receiptName='receipt-'+$receiptId+'.json'; $receiptPath=Join-Path $batchPath $receiptName
-            New-Json $receiptPath @{schema_version=1; batch=$m.batch; canonical_root=$canonical; manifest_sha256=$manifestSnapshot.Hash; apply_event_id=$applyEvent.event_id; apply_utc=$applyEvent.utc; post_state=$post; started_utc=$started.ToString('o'); finished_utc=$finished.ToString('o'); script_name=[IO.Path]::GetFileName($checkCopy); script_sha256=$checkSnapshot.Hash; command=@((Get-Process -Id $PID).Path,'-NoProfile','-File',$checkCopy,'-ProjectRoot',$view); exit_code=$check.exit_code; stdout=$check.stdout; stderr=$check.stderr; passed=$passed; check_guard=@{passed=$guard;reason=$guardReason;original_sha256=(Tree-Hash $original);view_sha256=$viewBefore;view_name=[IO.Path]::GetFileName($view)}}
+            New-Json $receiptPath @{check_attempt_event_id=$checkAttemptId;schema_version=1; batch=$m.batch; canonical_root=$canonical; manifest_sha256=$manifestSnapshot.Hash; apply_event_id=$applyEvent.event_id; apply_utc=$applyEvent.utc; post_state=$post; started_utc=$started.ToString('o'); finished_utc=$finished.ToString('o'); script_name=[IO.Path]::GetFileName($checkCopy); script_sha256=$checkSnapshot.Hash; command=@((Get-Process -Id $PID).Path,'-NoProfile','-File',$checkCopy,'-ProjectRoot',$view); exit_code=$check.exit_code; stdout=$check.stdout; stderr=$check.stderr; passed=$passed; check_guard=@{passed=$guard;reason=$guardReason;original_sha256=(Tree-Hash $original);view_sha256=$viewBefore;view_name=[IO.Path]::GetFileName($view)}}
             $receiptHash=([BathNative]::Read($receiptPath)).Hash
-            Write-Event $batchPath 'Checked' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time $receiptHash $receiptName
+            Write-Event $batchPath 'Checked' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time $receiptHash $receiptName $checkAttemptId
             return @{ok=$true; state='Checked'; passed=$passed; receipt=$receiptPath; batch=$batchPath; side_effect_guard=$guard; semantic_correctness='Agent-selected check on a bounded copy, not a semantic proof or host sandbox'}
         }
         if ($Action -eq 'Finalize') {
@@ -519,7 +778,30 @@ function Invoke-Bath {
             $rs=Read-PinnedFile $receiptPath $pins
             if ($rs.Hash -cne $last.receipt_sha256) { throw 'EVIDENCE_CHANGED: recorded receipt bytes changed' }
             $r=[Text.Encoding]::UTF8.GetString($rs.Bytes) | ConvertFrom-Json -AsHashtable
-            Check-Keys $r @('schema_version','batch','canonical_root','manifest_sha256','apply_event_id','apply_utc','post_state','started_utc','finished_utc','script_name','script_sha256','command','exit_code','stdout','stderr','passed','check_guard')
+            $attempts=@($events | Where-Object state -CEQ 'CheckStarted')
+            if(!$attempts.Count -or !$last.Contains('check_attempt_event_id') -or $r.check_attempt_event_id -isnot [string] -or $r.check_attempt_event_id -cne $attempts[-1].event_id -or $last.check_attempt_event_id -cne $r.check_attempt_event_id) { throw 'STALE_EVIDENCE: receipt does not bind latest check attempt' }
+            if($m.Contains('check_scope')) {
+                Check-Keys $r @('check_attempt_event_id','schema_version','batch','canonical_root','manifest_sha256','apply_event_id','apply_utc','post_state','started_utc','finished_utc','passed','exit_code','scope_sha256','input_snapshot_sha256','runtime_sha256','lab_receipt_path','lab_receipt_sha256','retained_root','retained_scope_name','retained_scope_sha256','retained_snapshot_sha256')
+                if($r.schema_version -ne 2 -or $r.batch -cne $m.batch -or $r.canonical_root -cne $canonical -or $r.manifest_sha256 -cne $manifestSnapshot.Hash -or $r.apply_event_id -cne $applyEvent.event_id -or $r.apply_utc -cne $applyEvent.utc) { throw 'BAD_RECEIPT: scoped batch/Apply binding mismatch' }
+                if([DateTimeOffset]::Parse($r.started_utc) -lt [DateTimeOffset]::Parse($applyEvent.utc) -or [DateTimeOffset]::Parse($r.finished_utc) -lt [DateTimeOffset]::Parse($r.started_utc) -or [DateTimeOffset]::Parse($r.finished_utc) -gt [DateTimeOffset]::Parse($last.utc)) { throw 'STALE_EVIDENCE: scoped Check time is outside Apply/event window' }
+                if($r.passed -ne $true -or $r.exit_code -ne 0 -or $r.scope_sha256 -cne $m.check_scope.scope_sha256) { throw 'CHECK_FAILED: scoped receipt did not pass' }
+                Assert-ScopedRuntime $r.runtime_sha256 $pins
+                $current=Read-ScopedState $m $batchPath $rootPath $pins $applyEvent $after
+                if($current.snapshot_sha256 -cne $r.input_snapshot_sha256) { throw 'EVIDENCE_CHANGED: current selected inputs changed' }
+                $post=Get-PostState $target $m $applyEvent $pins
+                if(!(Same-PostState $post $r.post_state)) { throw 'POST_CHANGED: target changed after scoped Check' }
+                $labPath=Get-LocalPath $r.lab_receipt_path
+                if([IO.Path]::GetDirectoryName($labPath) -cne $r.retained_root -or [IO.Path]::GetFileName($labPath) -cne 'receipt.json') { throw 'BAD_RECEIPT: invalid retained lab receipt path' }
+                $labBytes=Read-PinnedFile $labPath $pins
+                if($labBytes.Hash -cne $r.lab_receipt_sha256) { throw 'EVIDENCE_CHANGED: lab receipt changed' }
+                if($r.retained_scope_name -cnotmatch '^scoped-inspect-[a-f0-9]{32}\.json$') { throw 'BAD_RECEIPT: invalid inspection name' }
+                $inspection=Join-Path $batchPath $r.retained_scope_name
+                $inspectionBytes=Read-PinnedFile $inspection $pins
+                if($inspectionBytes.Hash -cne $r.retained_scope_sha256) { throw 'EVIDENCE_CHANGED: retained inspection changed' }
+                $retained=Read-RetainedEvidence $r.retained_root $inspection $pins
+                if($retained.snapshot_sha256 -cne $r.retained_snapshot_sha256) { throw 'EVIDENCE_CHANGED: retained source/output/log/control evidence changed' }
+            } else {
+            Check-Keys $r @('check_attempt_event_id','schema_version','batch','canonical_root','manifest_sha256','apply_event_id','apply_utc','post_state','started_utc','finished_utc','script_name','script_sha256','command','exit_code','stdout','stderr','passed','check_guard')
             if ($r.schema_version -ne 1 -or $r.batch -cne $m.batch -or $r.canonical_root -cne $canonical -or $r.manifest_sha256 -cne $manifestSnapshot.Hash -or $r.apply_event_id -cne $applyEvent.event_id -or $r.apply_utc -cne $applyEvent.utc) { throw 'BAD_RECEIPT: Apply/manifest/batch binding mismatch' }
             if ([DateTimeOffset]::Parse($r.started_utc) -lt [DateTimeOffset]::Parse($applyEvent.utc) -or [DateTimeOffset]::Parse($r.finished_utc) -lt [DateTimeOffset]::Parse($r.started_utc) -or [DateTimeOffset]::Parse($r.finished_utc) -gt [DateTimeOffset]::Parse($last.utc)) { throw 'STALE_EVIDENCE: check time is outside its Apply/receipt event window' }
             if (!$r.passed -or $r.exit_code -ne 0) { throw 'CHECK_FAILED: actual check did not pass; Restore or safe Close' }
@@ -531,14 +813,16 @@ function Invoke-Bath {
             Check-Keys $r.check_guard @('passed','reason','original_sha256','view_sha256','view_name')
             if (!$r.check_guard.passed -or $r.check_guard.view_name -cnotmatch '^view-[a-f0-9]{32}$') { throw 'CHECK_FAILED: invalid/failed side-effect guard' }
             if ((Tree-Hash (Read-CheckTree $rootPath $pins)) -cne $r.check_guard.original_sha256 -or (Tree-Hash (Read-CheckTree (Join-Path $batchPath $r.check_guard.view_name) $pins)) -cne $r.check_guard.view_sha256) { throw 'EVIDENCE_CHANGED: check inputs/view changed since receipt' }
+            }
             $repeated=$last.state -eq 'Completed'
-            if (!$repeated) { Write-Event $batchPath 'Completed' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time $rs.Hash $last.receipt_name }
+            if (!$repeated) { Write-Event $batchPath 'Completed' $manifestSnapshot.Hash $applyEvent.target_id $applyEvent.write_time $rs.Hash $last.receipt_name $r.check_attempt_event_id }
             if ($lease.owner -ceq $m.batch) { Write-Lease $leasePath '' }
             return @{ok=$true; state='Completed'; batch=$batchPath; receipt=$receiptPath; repeated=$repeated; verified_at=[DateTime]::UtcNow.ToString('o'); scope='Recorded check and current single-file post-state; Agent owns semantic judgment'}
         }
         if ($Action -eq 'Apply') {
             if ($m.tool_sha256 -cne (Get-FileHash -LiteralPath $script:ToolPath -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'TOOL_CHANGED: re-prepare with current tool; Restore remains available' }
             if ($last.state -cne 'BackedUp') { throw 'BAD_STATE: Apply requires BackedUp' }
+            if($m.Contains('check_scope')) { [void](Read-ScopedState $m $batchPath $rootPath $pins) }
             $source = [BathNative]::Open($target,$true)
             $current = [BathNative]::Capture($source)
             Assert-Same $current $m
@@ -586,7 +870,7 @@ function Invoke-Bath {
                 Write-Lease $leasePath ''
                 return @{ok=$true; state='Restored'; batch=$batchPath; target_untouched=$true}
             }
-            if ($last.state -notin @('Applied','Applying','Checked','Completed')) { throw 'BAD_STATE: Restore requires saved, applied or completed batch' }
+            if ($last.state -notin @('Applied','Applying','Checked','CheckStarted','Completed')) { throw 'BAD_STATE: Restore requires saved, applied or completed batch' }
             if ($m.action -eq 'archive') {
                 if ([IO.File]::Exists($target) -or [IO.Directory]::Exists($target)) { throw 'RESTORE_CONFLICT: same-path object exists; preserve it' }
                 Write-Event $batchPath 'Restoring' $manifestSnapshot.Hash
@@ -594,7 +878,7 @@ function Invoke-Bath {
                 # the target volume, never renamed across volumes.
                 [BathNative]::WriteNew($target,$backup.Bytes)
             } else {
-                if ($last.state -notin @('Applied','Checked','Completed') -or !$applyEvent) { throw 'UNCONFIRMED_EDIT: missing post receipt; automatic restore blocked' }
+                if ($last.state -notin @('Applied','Checked','CheckStarted','Completed') -or !$applyEvent) { throw 'UNCONFIRMED_EDIT: missing post receipt; automatic restore blocked' }
                 $source = [BathNative]::Open($target,$true); $current=[BathNative]::Capture($source)
                 if ($current.Hash -cne $m.after_sha256 -or $current.Id -cne $applyEvent.target_id -or $current.WriteTime -ne $applyEvent.write_time) { throw 'RESTORE_CONFLICT: later edit or new identity; preserve current file' }
                 Write-Event $batchPath 'Restoring' $manifestSnapshot.Hash $current.Id $current.WriteTime
@@ -622,7 +906,21 @@ function Invoke-Bath {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
+    if ($Group -and $Action -ne 'Help') {
+        if ($Action -eq 'Cancel') {
+            @{ok=$false;code='CAPABILITY_BLOCKED';message='Group incomplete batches use Close; Cancel is single-file only'} | ConvertTo-Json -Compress
+            exit 2
+        }
+        # Keep the existing entry; delegate group coordination without invoking single-file IO.
+        $groupArgs=@('-NoProfile','-File',(Join-Path $PSScriptRoot 'bath-group.ps1'),'-Action',$Action)
+        foreach ($forwardName in @('Root','Plan','Batch','CheckScript','Receipt','Scope')) {
+            $forwardValue=Get-Variable -Name $forwardName -ValueOnly
+            if ($forwardValue) { $groupArgs+=@(('-'+$forwardName),$forwardValue) }
+        }
+        & (Join-Path $PSHOME 'pwsh.exe') @groupArgs
+        exit $LASTEXITCODE
+    }
     $result=Invoke-Bath
-    $result | ConvertTo-Json -Depth 12 -Compress
+    $result | ConvertTo-Json -Depth 12 -Compress -EscapeHandling EscapeNonAscii
     if (!$result.ok) { exit 2 }
 }

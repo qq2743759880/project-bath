@@ -1,0 +1,249 @@
+<svg viewBox="0 0 1000 582" data-layout-contract="readable-v2" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase" xmlns="http://www.w3.org/2000/svg" width="1000" height="582" data-theme="light"><style><![CDATA[.c-grid{ stroke: #e9edf2; fill: none; }
+.c-mask{ fill: #ffffff; stroke: none; }
+.c-backend{ fill: rgba(52, 211, 153, 0.18);    stroke: #059669; }
+.t-primary{ fill: #111827; }
+.t-muted{ fill: #5b6474; }
+.t-dim{ fill: #9aa3b2; }
+.t-edge-default{ fill: #94a3b8; }
+.t-edge-security{ fill: #e11d48; }
+svg .semantic-sigil{
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.76;
+      pointer-events: none;
+    }
+svg .semantic-sigil > *{ vector-effect: non-scaling-stroke; }
+svg .semantic-sigil .sigil-fill{ fill: currentColor; stroke: none; }
+svg .s-frontend{ color: #0891b2; }
+svg .s-backend{ color: #059669; }
+svg .s-database{ color: #7c3aed; }
+svg .s-cloud{ color: #d97706; }
+svg .s-security{ color: #e11d48; }
+svg .s-messagebus{ color: #ea580c; }
+svg .s-external{ color: #64748b; }
+svg .brand-mark{ pointer-events: none; }
+svg .brand-mark-badge{ fill: #fff; stroke: none; }
+svg .brand-mark-frame{
+      fill: none;
+      stroke: #cbd5e1;
+      stroke-width: 0.8;
+      vector-effect: non-scaling-stroke;
+    }
+svg .brand-mark-fallback{
+      fill: none;
+      stroke: #475569;
+      stroke-width: 1.15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+svg [data-detail]{ transition: opacity 160ms ease; }
+svg [data-detail-anchor]{
+      transform-box: fill-box;
+      transform-origin: center;
+      transition: transform 160ms ease;
+    }
+.a-default{ stroke: #94a3b8; fill: none; }
+.a-security{ stroke: #e11d48; fill: none; stroke-dasharray: 5,5; }
+.m-default{ fill: #94a3b8; }
+.m-emphasis{ fill: #059669; }
+.m-security{ fill: #e11d48; }
+.m-dashed{ fill: #7c3aed; }
+svg [data-node-id]{
+      cursor: pointer;
+      transition: opacity 0.18s ease, fill-opacity 0.18s ease, stroke-opacity 0.18s ease, filter 0.18s ease;
+    }
+svg [data-edge-from],
+    svg [data-graph-role="automatic-crossover-underlay"]{ transition: opacity 0.18s ease, filter 0.18s ease; }
+svg [data-node-id]:hover,
+    svg [data-node-id]:focus-visible{
+      filter: drop-shadow(0 0 7px #0891b2);
+      outline: none;
+    }
+svg [data-node-id]:hover .source-evidence-beacon,
+    svg [data-node-id]:focus-visible .source-evidence-beacon,
+    svg [data-node-id][data-focus-selected] .source-evidence-beacon{
+      opacity: 1;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, #059669 72%, transparent));
+    }
+svg [data-legend-kind][role="button"]{ cursor: pointer; }
+svg [data-legend-kind]:focus{ outline: none; }
+svg [data-legend-hit]{
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 1.4;
+      pointer-events: all;
+      vector-effect: non-scaling-stroke;
+      transition: stroke 150ms ease, stroke-width 150ms ease, filter 150ms ease;
+    }
+svg [data-legend-count-badge]{ pointer-events: none; }
+svg [data-legend-count-badge] rect{
+      fill: #ffffff;
+      stroke: #e5e7eb;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+svg [data-legend-count-badge] text{
+      fill: #5b6474;
+      font-size: 8px;
+      font-weight: 700;
+      text-anchor: middle;
+    }
+svg [data-legend-kind][role="button"]:hover [data-legend-hit]{
+      stroke: color-mix(in srgb, #7c3aed 58%, transparent);
+    }
+svg [data-legend-kind][role="button"]:focus-visible [data-legend-hit]{
+      stroke: #0891b2;
+      stroke-width: 1.8;
+      filter: drop-shadow(0 0 3px #0891b2);
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-hit]{
+      stroke: #7c3aed;
+      stroke-width: 2.2;
+      stroke-dasharray: 3 2;
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-count-badge] rect{
+      stroke: #7c3aed;
+      stroke-width: 1.8;
+    }
+svg [data-legend-kind][data-legend-zero]{ opacity: 0.44; }
+svg [data-node-id] > .c-mask{ fill-opacity: 1; }
+.c-lane{ fill: rgba(248, 250, 252, 0.65); stroke: #cbd5e1; stroke-dasharray: 6,6; }
+svg{font-family:Microsoft YaHei,Arial,sans-serif;}
+.t-edge-default{fill:#475569;}]]></style><rect x="0" y="0" width="1000" height="582" fill="#f4f5f7"/>
+        <title id="archify-diagram-title">项目洗澡 · 回退与冲突保留</title>
+        <desc id="archify-diagram-description">由 Archify 生成的工作流图。</desc>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Swimlanes -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="758" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / 恢复判断</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="198" width="758" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="220" class="t-dim" font-size="10" font-weight="600">02 / 恢复与保留结果</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="344" width="758" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="366" class="t-dim" font-size="10" font-weight="600">03 / 停止结果</text>
+
+        <!-- Phase headers -->
+
+
+        <!-- Workflow groups -->
+
+
+        <!-- Edge paths -->
+        <path data-edge-from="close" data-edge-to="stopped" data-edge-label="保存 Stopped" data-edge-key="0" data-edge-id="close-stop" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="214,308;214,378" d="M 214 308 L 214 378" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="restore" data-edge-to="close" data-edge-label="残余冲突" data-edge-key="1" data-edge-id="restore-conflict" data-edge-role="error" data-composition-points="492.6,162;492.6,182;335,182;335,270;319,270" d="M 492.6 162 L 492.6 182 L 335 182 L 335 270 L 319 270" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="restore" data-edge-to="restored" data-edge-label="全部恢复" data-edge-key="2" data-edge-id="restore-success" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="604.6,124;810,124;810,270;604.6,270" d="M 604.6 124 L 810 124 L 810 270 L 604.6 270" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="status" data-edge-to="restore" data-edge-label="有确认且匹配" data-edge-key="3" data-edge-id="safe-restore" data-edge-role="branch" data-composition-points="319,124;394.6,124" d="M 319 124 L 394.6 124" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="status" data-edge-to="close" data-edge-label="冲突 / 未知" data-edge-key="4" data-edge-id="unsafe-close" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="214,162;214,232" d="M 214 162 L 214 232" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+
+        <!-- Nodes -->
+        <g id="node-status" data-node-id="status" data-node-label="Status" tabindex="0" role="button" aria-label="聚焦Status，只读冲突与确认事件, 恢复判断" aria-pressed="false" data-node-kind="backend" data-node-sublabel="只读冲突与确认事件" data-node-context="恢复判断">
+          <title>Status · 只读冲突与确认事件 · 恢复判断</title>
+          <rect x="109" y="86" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="109" y="86" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(115 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="214" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Status</text>
+          <text data-detail="context" x="214" y="124" class="t-muted" font-size="8" text-anchor="middle">只读冲突与确认事件</text>
+        </g>
+
+        <g id="node-restore" data-node-id="restore" data-node-label="Restore" tabindex="0" role="button" aria-label="聚焦Restore，确认 Applied 且状态匹配, 恢复判断" aria-pressed="false" data-node-kind="backend" data-node-sublabel="确认 Applied 且状态匹配" data-node-context="恢复判断">
+          <title>Restore · 确认 Applied 且状态匹配 · 恢复判断</title>
+          <rect x="394.6" y="86" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="394.6" y="86" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(400.6 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="499.6" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Restore</text>
+          <text data-detail="context" x="499.6" y="124" class="t-muted" font-size="8" text-anchor="middle">确认 Applied 且状态匹配</text>
+        </g>
+
+        <g id="node-close" data-node-id="close" data-node-label="Close" tabindex="0" role="button" aria-label="聚焦Close，冲突或未知写入保留内容, 恢复与保留结果" aria-pressed="false" data-node-kind="backend" data-node-sublabel="冲突或未知写入保留内容" data-node-context="恢复与保留结果">
+          <title>Close · 冲突或未知写入保留内容 · 恢复与保留结果</title>
+          <rect x="109" y="232" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="109" y="232" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(115 238) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="214" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Close</text>
+          <text data-detail="context" x="214" y="270" class="t-muted" font-size="8" text-anchor="middle">冲突或未知写入保留内容</text>
+        </g>
+
+        <g id="node-restored" data-node-id="restored" data-node-label="Restored" tabindex="0" role="button" aria-label="聚焦Restored，完整恢复 / 释放自己的 lease, 恢复与保留结果" aria-pressed="false" data-node-kind="backend" data-node-sublabel="完整恢复 / 释放自己的 lease" data-node-context="恢复与保留结果">
+          <title>Restored · 完整恢复 / 释放自己的 lease · 恢复与保留结果</title>
+          <rect x="394.6" y="232" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="394.6" y="232" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(400.6 238) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="499.6" y="253" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Restored</text>
+          <text data-detail="context" x="499.6" y="270" class="t-muted" font-size="8" text-anchor="middle">完整恢复 / 释放自己的 lease</text>
+        </g>
+
+        <g id="node-stopped" data-node-id="stopped" data-node-label="Stopped" tabindex="0" role="button" aria-label="聚焦Stopped，非完整恢复 / 释放自己 lease, 停止结果" aria-pressed="false" data-node-kind="backend" data-node-sublabel="非完整恢复 / 释放自己 lease" data-node-context="停止结果">
+          <title>Stopped · 非完整恢复 / 释放自己 lease · 停止结果</title>
+          <rect x="109" y="378" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="109" y="378" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(115 384) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="214" y="399" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Stopped</text>
+          <text data-detail="context" x="214" y="416" class="t-muted" font-size="8" text-anchor="middle">非完整恢复 / 释放自己 lease</text>
+        </g>
+
+        <!-- Edge labels -->
+        <g data-detail="context" data-edge-from="close" data-edge-to="stopped" data-edge-label="保存 Stopped" data-edge-key="0" data-edge-id="close-stop">
+          <rect x="180.2" y="333" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="214" y="343" class="t-edge-default" font-size="8" text-anchor="middle">保存 Stopped</text>
+        </g>
+        <g data-detail="context" data-edge-from="restore" data-edge-to="close" data-edge-label="残余冲突" data-edge-key="1" data-edge-id="restore-conflict">
+          <rect x="389.6" y="162" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="413.8" y="172" class="t-edge-security" font-size="8" text-anchor="middle">残余冲突</text>
+        </g>
+        <g data-detail="context" data-edge-from="restore" data-edge-to="restored" data-edge-label="全部恢复" data-edge-key="2" data-edge-id="restore-success">
+          <rect x="683.0999999999999" y="104" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="707.3" y="114" class="t-edge-default" font-size="8" text-anchor="middle">全部恢复</text>
+        </g>
+        <g data-detail="context" data-edge-from="status" data-edge-to="restore" data-edge-label="有确认且匹配" data-edge-key="3" data-edge-id="safe-restore">
+          <rect x="323" y="104" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="356.8" y="114" class="t-edge-default" font-size="8" text-anchor="middle">有确认且匹配</text>
+        </g>
+        <g data-detail="context" data-edge-from="status" data-edge-to="close" data-edge-label="冲突 / 未知" data-edge-key="4" data-edge-id="unsafe-close">
+          <rect x="182.6" y="187" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="214" y="197" class="t-edge-security" font-size="8" text-anchor="middle">冲突 / 未知</text>
+        </g>
+
+        <!-- Legend -->
+        <g data-legend="" data-legend-bridge="">
+          <text x="20" y="482" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="执行步骤" data-legend-x="20" data-legend-baseline="502" data-legend-width="78">
+            <rect x="20" y="494" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+            <text x="42" y="502" class="t-muted" font-size="7.5" font-weight="500">执行步骤</text>
+          </g>
+        </g>
+      </svg>

@@ -1,0 +1,20 @@
+C4Container
+  title 项目洗澡本地执行与保存
+  Person(maintainer, "项目维护者", "指定清理范围")
+  System_Ext(workspace, "项目工作区", "NTFS 普通文件")
+  System_Boundary(bath, "本地项目洗澡执行系统") {
+    Container(agent, "文件能力 Agent 宿主", "宿主型号不限定", "读取 Skill；判断过期证据与检查充分性")
+    Container(tool, "批次工具进程", "Windows / PowerShell 7.4+", "bath.ps1 统一入口；守卫阶段与写入")
+    Container(checker, "检查子进程", "PowerShell", "运行可信检查脚本；读取 D 视图")
+    ContainerDb(archive, "D 盘批次保存区", "NTFS 文件存储", "修改文件备份、journal 与保留检查视图")
+  }
+  Rel(maintainer, agent, "提交范围与保留项", "宿主对话")
+  Rel(agent, tool, "调用 bath.ps1 执行阶段", "PowerShell CLI / JSON")
+  Rel(tool, workspace, "核验并守卫修改与恢复", ".NET / Win32 文件 API")
+  Rel(tool, archive, "备份原字节并保存证据", "本地文件 API")
+  Rel(tool, checker, "启动 Check", "PowerShell 子进程")
+  Rel(checker, archive, "读取 D 检查视图与写声明输出", "ViewRoot / 本地文件 API")
+  UpdateRelStyle(agent, tool, $offsetY="-95")
+  UpdateRelStyle(checker, archive, $offsetY="90")
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+

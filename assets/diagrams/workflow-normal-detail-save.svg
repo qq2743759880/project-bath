@@ -1,0 +1,349 @@
+<svg viewBox="0 0 598 558" data-layout-contract="readable-v2" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase" xmlns="http://www.w3.org/2000/svg" width="598" height="558" data-theme="light"><style><![CDATA[.c-grid{ stroke: #e9edf2; fill: none; }
+.c-mask{ fill: #ffffff; stroke: none; }
+.c-backend{ fill: rgba(52, 211, 153, 0.18);    stroke: #059669; }
+.c-security{ fill: rgba(251, 113, 133, 0.15);   stroke: #e11d48; }
+.t-primary{ fill: #111827; }
+.t-muted{ fill: #5b6474; }
+.t-dim{ fill: #9aa3b2; }
+.t-security{ fill: #e11d48; }
+.t-edge-default{ fill: #94a3b8; }
+.t-edge-security{ fill: #e11d48; }
+svg .semantic-sigil{
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.76;
+      pointer-events: none;
+    }
+svg .semantic-sigil > *{ vector-effect: non-scaling-stroke; }
+svg .semantic-sigil .sigil-fill{ fill: currentColor; stroke: none; }
+svg .s-frontend{ color: #0891b2; }
+svg .s-backend{ color: #059669; }
+svg .s-database{ color: #7c3aed; }
+svg .s-cloud{ color: #d97706; }
+svg .s-security{ color: #e11d48; }
+svg .s-messagebus{ color: #ea580c; }
+svg .s-external{ color: #64748b; }
+svg .brand-mark{ pointer-events: none; }
+svg .brand-mark-badge{ fill: #fff; stroke: none; }
+svg .brand-mark-frame{
+      fill: none;
+      stroke: #cbd5e1;
+      stroke-width: 0.8;
+      vector-effect: non-scaling-stroke;
+    }
+svg .brand-mark-fallback{
+      fill: none;
+      stroke: #475569;
+      stroke-width: 1.15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+svg [data-detail]{ transition: opacity 160ms ease; }
+svg [data-detail-anchor]{
+      transform-box: fill-box;
+      transform-origin: center;
+      transition: transform 160ms ease;
+    }
+.a-default{ stroke: #94a3b8; fill: none; }
+.a-security{ stroke: #e11d48; fill: none; stroke-dasharray: 5,5; }
+.m-default{ fill: #94a3b8; }
+.m-emphasis{ fill: #059669; }
+.m-security{ fill: #e11d48; }
+.m-dashed{ fill: #7c3aed; }
+svg [data-node-id]{
+      cursor: pointer;
+      transition: opacity 0.18s ease, fill-opacity 0.18s ease, stroke-opacity 0.18s ease, filter 0.18s ease;
+    }
+svg [data-edge-from],
+    svg [data-graph-role="automatic-crossover-underlay"]{ transition: opacity 0.18s ease, filter 0.18s ease; }
+svg [data-node-id]:hover,
+    svg [data-node-id]:focus-visible{
+      filter: drop-shadow(0 0 7px #0891b2);
+      outline: none;
+    }
+svg [data-node-id]:hover .source-evidence-beacon,
+    svg [data-node-id]:focus-visible .source-evidence-beacon,
+    svg [data-node-id][data-focus-selected] .source-evidence-beacon{
+      opacity: 1;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, #059669 72%, transparent));
+    }
+svg [data-legend-kind][role="button"]{ cursor: pointer; }
+svg [data-legend-kind]:focus{ outline: none; }
+svg [data-legend-hit]{
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 1.4;
+      pointer-events: all;
+      vector-effect: non-scaling-stroke;
+      transition: stroke 150ms ease, stroke-width 150ms ease, filter 150ms ease;
+    }
+svg [data-legend-count-badge]{ pointer-events: none; }
+svg [data-legend-count-badge] rect{
+      fill: #ffffff;
+      stroke: #e5e7eb;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+svg [data-legend-count-badge] text{
+      fill: #5b6474;
+      font-size: 8px;
+      font-weight: 700;
+      text-anchor: middle;
+    }
+svg [data-legend-kind][role="button"]:hover [data-legend-hit]{
+      stroke: color-mix(in srgb, #7c3aed 58%, transparent);
+    }
+svg [data-legend-kind][role="button"]:focus-visible [data-legend-hit]{
+      stroke: #0891b2;
+      stroke-width: 1.8;
+      filter: drop-shadow(0 0 3px #0891b2);
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-hit]{
+      stroke: #7c3aed;
+      stroke-width: 2.2;
+      stroke-dasharray: 3 2;
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-count-badge] rect{
+      stroke: #7c3aed;
+      stroke-width: 1.8;
+    }
+svg [data-legend-kind][data-legend-zero]{ opacity: 0.44; }
+svg [data-node-id] > .c-mask{ fill-opacity: 1; }
+.c-security-group{ fill: transparent; stroke: #e11d48; stroke-dasharray: 4,4; }
+.c-lane{ fill: rgba(248, 250, 252, 0.65); stroke: #cbd5e1; stroke-dasharray: 6,6; }
+svg{font-family:Microsoft YaHei,Arial,sans-serif;}
+.t-edge-default{fill:#475569;}]]></style><rect x="0" y="0" width="1226" height="558" fill="#f4f5f7"/>
+        <title id="archify-diagram-title">项目洗澡 · 正常清理与拒绝</title>
+        <desc id="archify-diagram-description">由 Archify 生成的工作流图。</desc>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Swimlanes -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="1170" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / 完成结果</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="186" width="1170" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="208" class="t-dim" font-size="10" font-weight="600">02 / 正常清理</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="320" width="1170" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="exception-lane" data-composition-frame-id="lane-2-exception" x="46" y="326" width="1158" height="102" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="54" y="342" class="t-security" font-size="10" font-weight="600">EX / 先停下</text>
+
+        <!-- Phase headers -->
+
+
+        <!-- Workflow groups -->
+
+
+        <!-- Edge paths -->
+        <path data-edge-from="apply" data-edge-to="check" data-edge-label="确认整批 Applied" data-edge-key="0" data-edge-id="apply-check" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="750.4,258;845.2,258" d="M 750.4 258 L 845.2 258" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="prepare" data-edge-to="apply" data-edge-label="BackedUp" data-edge-key="1" data-edge-id="backed-up" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="556,258;612.4,258" d="M 556 258 L 612.4 258" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="check" data-edge-to="checkfail" data-edge-label="失败 / 中断" data-edge-key="2" data-edge-id="check-failure" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="914.2,296;914.2,354" d="M 914.2 296 L 914.2 354" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="check" data-edge-to="finalize" data-edge-label="最新检查 PASS" data-edge-key="3" data-edge-id="check-pass" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="983.2,258;1063.6000000000001,258" d="M 983.2 258 L 1063.6000000000001 258" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="finalize" data-edge-to="completed" data-edge-label="当前证据有效" data-edge-key="4" data-edge-id="complete" data-edge-role="main" data-composition-points="1132.6000000000001,220;1132.6000000000001,162" d="M 1132.6000000000001 220 L 1132.6000000000001 162" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="prepare" data-edge-to="backupfail" data-edge-label="核验失败" data-edge-key="5" data-edge-id="d-failure" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="487,296;487,354" d="M 487 296 L 487 354" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="finalize" data-edge-to="stale" data-edge-label="过期或状态改变" data-edge-key="6" data-edge-id="finalize-stale" data-composition-routing="workflow-v2-auto" data-edge-role="error" data-composition-points="1132.6000000000001,296;1132.6000000000001,354" d="M 1132.6000000000001 296 L 1132.6000000000001 354" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="inspect" data-edge-to="keep" data-edge-label="证据不足" data-edge-key="7" data-edge-id="insufficient" data-composition-routing="workflow-v2-auto" data-edge-role="branch" data-composition-points="186,265;202,265;202,450;117,450;117,430" d="M 186 265 L 202 265 L 202 450 L 117 450 L 117 430" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="plan" data-edge-to="prepare" data-edge-key="8" data-edge-id="plan-prepare" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="390,258;418,258" d="M 390 258 L 418 258" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="inspect" data-edge-to="plan" data-edge-label="有过期证据" data-edge-key="9" data-edge-id="proof" data-composition-routing="workflow-v2-auto" data-edge-role="main" data-composition-points="186,246;202,246;202,170;321,170;321,220" d="M 186 246 L 202 246 L 202 170 L 321 170 L 321 220" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Nodes -->
+        <g id="node-completed" data-node-id="completed" data-node-label="Completed" tabindex="0" role="button" aria-label="聚焦Completed，充分检查 / 释放自己 lease, 完成结果" aria-pressed="false" data-node-kind="backend" data-node-sublabel="充分检查 / 释放自己 lease" data-node-context="完成结果">
+          <title>Completed · 充分检查 / 释放自己 lease · 完成结果</title>
+          <rect x="1063.6000000000001" y="86" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="1063.6000000000001" y="86" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1069.6000000000001 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1132.6000000000001" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Completed</text>
+          <text data-detail="context" x="1132.6000000000001" y="124" class="t-muted" font-size="8" text-anchor="middle">充分检查 / 释放自己 lease</text>
+        </g>
+
+        <g id="node-inspect" data-node-id="inspect" data-node-label="核对真实入口" tabindex="0" role="button" aria-label="聚焦核对真实入口，范围、保留项与现有修改, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="范围、保留项与现有修改" data-node-context="正常清理">
+          <title>核对真实入口 · 范围、保留项与现有修改 · 正常清理</title>
+          <rect x="48" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="48" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(54 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="117" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">核对真实入口</text>
+          <text data-detail="context" x="117" y="258" class="t-muted" font-size="8" text-anchor="middle">范围、保留项与现有修改</text>
+        </g>
+
+        <g id="node-plan" data-node-id="plan" data-node-label="绑定当前字节" tabindex="0" role="button" aria-label="聚焦绑定当前字节，项目外计划与完整替换, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="项目外计划与完整替换" data-node-context="正常清理">
+          <title>绑定当前字节 · 项目外计划与完整替换 · 正常清理</title>
+          <rect x="252" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="252" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(258 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="321" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">绑定当前字节</text>
+          <text data-detail="context" x="321" y="258" class="t-muted" font-size="8" text-anchor="middle">项目外计划与完整替换</text>
+        </g>
+
+        <g id="node-prepare" data-node-id="prepare" data-node-label="Prepare" tabindex="0" role="button" aria-label="聚焦Prepare，D 备份全部核验, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="D 备份全部核验" data-node-context="正常清理">
+          <title>Prepare · D 备份全部核验 · 正常清理</title>
+          <rect x="418" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="418" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(424 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="487" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Prepare</text>
+          <text data-detail="context" x="487" y="258" class="t-muted" font-size="8" text-anchor="middle">D 备份全部核验</text>
+        </g>
+
+        <g id="node-apply" data-node-id="apply" data-node-label="Apply" tabindex="0" role="button" aria-label="聚焦Apply，仅 BackedUp 后写入, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="仅 BackedUp 后写入" data-node-context="正常清理">
+          <title>Apply · 仅 BackedUp 后写入 · 正常清理</title>
+          <rect x="612.4" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="612.4" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(618.4 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="681.4" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Apply</text>
+          <text data-detail="context" x="681.4" y="258" class="t-muted" font-size="8" text-anchor="middle">仅 BackedUp 后写入</text>
+        </g>
+
+        <g id="node-check" data-node-id="check" data-node-label="Check" tabindex="0" role="button" aria-label="聚焦Check，D 视图检查 + 最新尝试, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="D 视图检查 + 最新尝试" data-node-context="正常清理">
+          <title>Check · D 视图检查 + 最新尝试 · 正常清理</title>
+          <rect x="845.2" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="845.2" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(851.2 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="914.2" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Check</text>
+          <text data-detail="context" x="914.2" y="258" class="t-muted" font-size="8" text-anchor="middle">D 视图检查 + 最新尝试</text>
+        </g>
+
+        <g id="node-finalize" data-node-id="finalize" data-node-label="Finalize" tabindex="0" role="button" aria-label="聚焦Finalize，原 receipt + 当前状态, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="原 receipt + 当前状态" data-node-context="正常清理">
+          <title>Finalize · 原 receipt + 当前状态 · 正常清理</title>
+          <rect x="1063.6000000000001" y="220" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="1063.6000000000001" y="220" width="138" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1069.6000000000001 226) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1132.6000000000001" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Finalize</text>
+          <text data-detail="context" x="1132.6000000000001" y="258" class="t-muted" font-size="8" text-anchor="middle">原 receipt + 当前状态</text>
+        </g>
+
+        <g id="node-keep" data-node-id="keep" data-node-label="证据不足暂留" tabindex="0" role="button" aria-label="聚焦证据不足暂留，允许零修改, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="允许零修改" data-node-context="先停下">
+          <title>证据不足暂留 · 允许零修改 · 先停下</title>
+          <rect x="48" y="354" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="48" y="354" width="138" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(54 360) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="117" y="375" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">证据不足暂留</text>
+          <text data-detail="context" x="117" y="392" class="t-muted" font-size="8" text-anchor="middle">允许零修改</text>
+        </g>
+
+        <g id="node-backupfail" data-node-id="backupfail" data-node-label="D 保存失败" tabindex="0" role="button" aria-label="聚焦D 保存失败，项目零写入, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="项目零写入" data-node-context="先停下">
+          <title>D 保存失败 · 项目零写入 · 先停下</title>
+          <rect x="418" y="354" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="418" y="354" width="138" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(424 360) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="487" y="375" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">D 保存失败</text>
+          <text data-detail="context" x="487" y="392" class="t-muted" font-size="8" text-anchor="middle">项目零写入</text>
+        </g>
+
+        <g id="node-checkfail" data-node-id="checkfail" data-node-label="失败或中断" tabindex="0" role="button" aria-label="聚焦失败或中断，旧 PASS 立即失效, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="旧 PASS 立即失效" data-node-context="先停下">
+          <title>失败或中断 · 旧 PASS 立即失效 · 先停下</title>
+          <rect x="845.2" y="354" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="845.2" y="354" width="138" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(851.2 360) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="914.2" y="375" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">失败或中断</text>
+          <text data-detail="context" x="914.2" y="392" class="t-muted" font-size="8" text-anchor="middle">旧 PASS 立即失效</text>
+        </g>
+
+        <g id="node-stale" data-node-id="stale" data-node-label="拒绝过期 PASS" tabindex="0" role="button" aria-label="聚焦拒绝过期 PASS，需最新真实成功尝试, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="需最新真实成功尝试" data-node-context="先停下">
+          <title>拒绝过期 PASS · 需最新真实成功尝试 · 先停下</title>
+          <rect x="1063.6000000000001" y="354" width="138" height="76" rx="6" class="c-mask"/>
+          <rect x="1063.6000000000001" y="354" width="138" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(1069.6000000000001 360) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="1132.6000000000001" y="375" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">拒绝过期 PASS</text>
+          <text data-detail="context" x="1132.6000000000001" y="392" class="t-muted" font-size="8" text-anchor="middle">需最新真实成功尝试</text>
+        </g>
+
+        <!-- Edge labels -->
+        <g data-detail="context" data-edge-from="apply" data-edge-to="check" data-edge-label="确认整批 Applied" data-edge-key="0" data-edge-id="apply-check">
+          <rect x="754.4" y="238" width="86.8" height="14" rx="3" class="c-mask"/>
+          <text x="797.8" y="248" class="t-edge-default" font-size="8" text-anchor="middle">确认整批 Applied</text>
+        </g>
+        <g data-detail="context" data-edge-from="prepare" data-edge-to="apply" data-edge-label="BackedUp" data-edge-key="1" data-edge-id="backed-up">
+          <rect x="560" y="238" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="584.2" y="248" class="t-edge-default" font-size="8" text-anchor="middle">BackedUp</text>
+        </g>
+        <g data-detail="context" data-edge-from="check" data-edge-to="checkfail" data-edge-label="失败 / 中断" data-edge-key="2" data-edge-id="check-failure">
+          <rect x="882.8000000000001" y="315" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="914.2" y="325" class="t-edge-security" font-size="8" text-anchor="middle">失败 / 中断</text>
+        </g>
+        <g data-detail="context" data-edge-from="check" data-edge-to="finalize" data-edge-label="最新检查 PASS" data-edge-key="3" data-edge-id="check-pass">
+          <rect x="987.2" y="238" width="72.4" height="14" rx="3" class="c-mask"/>
+          <text x="1023.4000000000001" y="248" class="t-edge-default" font-size="8" text-anchor="middle">最新检查 PASS</text>
+        </g>
+        <g data-detail="context" data-edge-from="finalize" data-edge-to="completed" data-edge-label="当前证据有效" data-edge-key="4" data-edge-id="complete">
+          <rect x="1098.8000000000002" y="181" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="1132.6000000000001" y="191" class="t-edge-default" font-size="8" text-anchor="middle">当前证据有效</text>
+        </g>
+        <g data-detail="context" data-edge-from="prepare" data-edge-to="backupfail" data-edge-label="核验失败" data-edge-key="5" data-edge-id="d-failure">
+          <rect x="462.8" y="315" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="487" y="325" class="t-edge-security" font-size="8" text-anchor="middle">核验失败</text>
+        </g>
+        <g data-detail="context" data-edge-from="finalize" data-edge-to="stale" data-edge-label="过期或状态改变" data-edge-key="6" data-edge-id="finalize-stale">
+          <rect x="1094.0000000000002" y="315" width="77.2" height="14" rx="3" class="c-mask"/>
+          <text x="1132.6000000000001" y="325" class="t-edge-security" font-size="8" text-anchor="middle">过期或状态改变</text>
+        </g>
+        <g data-detail="context" data-edge-from="inspect" data-edge-to="keep" data-edge-label="证据不足" data-edge-key="7" data-edge-id="insufficient">
+          <rect x="135.3" y="430" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="159.5" y="440" class="t-edge-default" font-size="8" text-anchor="middle">证据不足</text>
+        </g>
+
+        <g data-detail="context" data-edge-from="inspect" data-edge-to="plan" data-edge-label="有过期证据" data-edge-key="9" data-edge-id="proof">
+          <rect x="232.5" y="150" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="261.5" y="160" class="t-edge-default" font-size="8" text-anchor="middle">有过期证据</text>
+        </g>
+
+        <!-- Legend -->
+        <g data-legend="" data-legend-bridge="">
+          <text x="20" y="458" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="执行步骤" data-legend-x="20" data-legend-baseline="478" data-legend-width="78">
+            <rect x="20" y="470" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+            <text x="42" y="478" class="t-muted" font-size="7.5" font-weight="500">执行步骤</text>
+          </g>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="拒绝条件" data-legend-x="105" data-legend-baseline="478" data-legend-width="78">
+            <rect x="105" y="470" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+            <text x="127" y="478" class="t-muted" font-size="7.5" font-weight="500">拒绝条件</text>
+          </g>
+        </g>
+      </svg>

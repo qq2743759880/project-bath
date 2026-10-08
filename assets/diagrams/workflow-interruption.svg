@@ -1,0 +1,238 @@
+<svg viewBox="0 0 1000 558" data-layout-contract="readable-v2" role="img" lang="zh-CN" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase" xmlns="http://www.w3.org/2000/svg" width="1000" height="558" data-theme="light"><style><![CDATA[.c-grid{ stroke: #e9edf2; fill: none; }
+.c-mask{ fill: #ffffff; stroke: none; }
+.c-backend{ fill: rgba(52, 211, 153, 0.18);    stroke: #059669; }
+.c-security{ fill: rgba(251, 113, 133, 0.15);   stroke: #e11d48; }
+.t-primary{ fill: #111827; }
+.t-muted{ fill: #5b6474; }
+.t-dim{ fill: #9aa3b2; }
+.t-security{ fill: #e11d48; }
+.t-edge-default{ fill: #94a3b8; }
+.t-edge-security{ fill: #e11d48; }
+svg .semantic-sigil{
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.35;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.76;
+      pointer-events: none;
+    }
+svg .semantic-sigil > *{ vector-effect: non-scaling-stroke; }
+svg .semantic-sigil .sigil-fill{ fill: currentColor; stroke: none; }
+svg .s-frontend{ color: #0891b2; }
+svg .s-backend{ color: #059669; }
+svg .s-database{ color: #7c3aed; }
+svg .s-cloud{ color: #d97706; }
+svg .s-security{ color: #e11d48; }
+svg .s-messagebus{ color: #ea580c; }
+svg .s-external{ color: #64748b; }
+svg .brand-mark{ pointer-events: none; }
+svg .brand-mark-badge{ fill: #fff; stroke: none; }
+svg .brand-mark-frame{
+      fill: none;
+      stroke: #cbd5e1;
+      stroke-width: 0.8;
+      vector-effect: non-scaling-stroke;
+    }
+svg .brand-mark-fallback{
+      fill: none;
+      stroke: #475569;
+      stroke-width: 1.15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+svg [data-detail]{ transition: opacity 160ms ease; }
+svg [data-detail-anchor]{
+      transform-box: fill-box;
+      transform-origin: center;
+      transition: transform 160ms ease;
+    }
+.a-default{ stroke: #94a3b8; fill: none; }
+.a-security{ stroke: #e11d48; fill: none; stroke-dasharray: 5,5; }
+.m-default{ fill: #94a3b8; }
+.m-emphasis{ fill: #059669; }
+.m-security{ fill: #e11d48; }
+.m-dashed{ fill: #7c3aed; }
+svg [data-node-id]{
+      cursor: pointer;
+      transition: opacity 0.18s ease, fill-opacity 0.18s ease, stroke-opacity 0.18s ease, filter 0.18s ease;
+    }
+svg [data-edge-from],
+    svg [data-graph-role="automatic-crossover-underlay"]{ transition: opacity 0.18s ease, filter 0.18s ease; }
+svg [data-node-id]:hover,
+    svg [data-node-id]:focus-visible{
+      filter: drop-shadow(0 0 7px #0891b2);
+      outline: none;
+    }
+svg [data-node-id]:hover .source-evidence-beacon,
+    svg [data-node-id]:focus-visible .source-evidence-beacon,
+    svg [data-node-id][data-focus-selected] .source-evidence-beacon{
+      opacity: 1;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, #059669 72%, transparent));
+    }
+svg [data-legend-kind][role="button"]{ cursor: pointer; }
+svg [data-legend-kind]:focus{ outline: none; }
+svg [data-legend-hit]{
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 1.4;
+      pointer-events: all;
+      vector-effect: non-scaling-stroke;
+      transition: stroke 150ms ease, stroke-width 150ms ease, filter 150ms ease;
+    }
+svg [data-legend-count-badge]{ pointer-events: none; }
+svg [data-legend-count-badge] rect{
+      fill: #ffffff;
+      stroke: #e5e7eb;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+svg [data-legend-count-badge] text{
+      fill: #5b6474;
+      font-size: 8px;
+      font-weight: 700;
+      text-anchor: middle;
+    }
+svg [data-legend-kind][role="button"]:hover [data-legend-hit]{
+      stroke: color-mix(in srgb, #7c3aed 58%, transparent);
+    }
+svg [data-legend-kind][role="button"]:focus-visible [data-legend-hit]{
+      stroke: #0891b2;
+      stroke-width: 1.8;
+      filter: drop-shadow(0 0 3px #0891b2);
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-hit]{
+      stroke: #7c3aed;
+      stroke-width: 2.2;
+      stroke-dasharray: 3 2;
+    }
+svg [data-legend-kind][data-legend-selected] [data-legend-count-badge] rect{
+      stroke: #7c3aed;
+      stroke-width: 1.8;
+    }
+svg [data-legend-kind][data-legend-zero]{ opacity: 0.44; }
+svg [data-node-id] > .c-mask{ fill-opacity: 1; }
+.c-security-group{ fill: transparent; stroke: #e11d48; stroke-dasharray: 4,4; }
+.c-lane{ fill: rgba(248, 250, 252, 0.65); stroke: #cbd5e1; stroke-dasharray: 6,6; }
+svg{font-family:Microsoft YaHei,Arial,sans-serif;}
+.t-edge-default{fill:#475569;}]]></style><rect x="0" y="0" width="1000" height="558" fill="#f4f5f7"/>
+        <title id="archify-diagram-title">项目洗澡 · 中断后先看现状</title>
+        <desc id="archify-diagram-description">由 Archify 生成的工作流图。</desc>
+        <!-- Definitions -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
+          </marker>
+          <marker id="arrowhead-emphasis" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-emphasis" />
+          </marker>
+          <marker id="arrowhead-security" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-security" />
+          </marker>
+          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" class="m-dashed" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="c-grid" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <!-- Background Grid -->
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Swimlanes -->
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-0" x="40" y="52" width="771" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="74" class="t-dim" font-size="10" font-weight="600">01 / 正常清理</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-1" x="40" y="186" width="771" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="exception-lane" data-composition-frame-id="lane-1-exception" x="46" y="192" width="759" height="102" rx="8" class="c-security-group" stroke-width="1"/>
+        <text x="54" y="208" class="t-security" font-size="10" font-weight="600">EX / 先停下</text>
+
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="lane" data-composition-frame-id="lane-2" x="40" y="320" width="771" height="114" rx="10" class="c-lane" stroke-width="1"/>
+        <text x="54" y="342" class="t-dim" font-size="10" font-weight="600">03 / 恢复判断</text>
+
+        <!-- Phase headers -->
+
+
+        <!-- Workflow groups -->
+
+
+        <!-- Edge paths -->
+        <path data-edge-from="apply" data-edge-to="status" data-edge-label="未知 / 冲突" data-edge-key="0" data-edge-id="apply-unknown" data-edge-role="error" data-composition-points="153,162;153,178;20,178;20,392;168,392" d="M 153 162 L 153 178 L 20 178 L 20 392 L 168 392" class="a-security" stroke-width="1.4" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="checkfail" data-edge-to="status" data-edge-label="决定回退" data-edge-key="1" data-edge-id="failed-status" data-edge-role="branch" data-composition-points="273,296;273,354" d="M 273 296 L 273 354" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="stale" data-edge-to="status" data-edge-label="检查现状" data-edge-key="2" data-edge-id="stale-status" data-edge-role="branch" data-composition-points="513,296;513,392;378,392" d="M 513 296 L 513 392 L 378 392" class="a-default" stroke-width="1.4" marker-end="url(#arrowhead)"/>
+
+        <!-- Nodes -->
+        <g id="node-apply" data-node-id="apply" data-node-label="Apply" tabindex="0" role="button" aria-label="聚焦Apply，仅 BackedUp 后写入, 正常清理" aria-pressed="false" data-node-kind="backend" data-node-sublabel="仅 BackedUp 后写入" data-node-context="正常清理">
+          <title>Apply · 仅 BackedUp 后写入 · 正常清理</title>
+          <rect x="48" y="86" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="48" y="86" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(54 92) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="153" y="107" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Apply</text>
+          <text data-detail="context" x="153" y="124" class="t-muted" font-size="8" text-anchor="middle">仅 BackedUp 后写入</text>
+        </g>
+
+        <g id="node-checkfail" data-node-id="checkfail" data-node-label="失败或中断" tabindex="0" role="button" aria-label="聚焦失败或中断，旧 PASS 立即失效, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="旧 PASS 立即失效" data-node-context="先停下">
+          <title>失败或中断 · 旧 PASS 立即失效 · 先停下</title>
+          <rect x="168" y="220" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="168" y="220" width="210" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(174 226) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="273" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">失败或中断</text>
+          <text data-detail="context" x="273" y="258" class="t-muted" font-size="8" text-anchor="middle">旧 PASS 立即失效</text>
+        </g>
+
+        <g id="node-stale" data-node-id="stale" data-node-label="拒绝过期 PASS" tabindex="0" role="button" aria-label="聚焦拒绝过期 PASS，需最新真实成功尝试, 先停下" aria-pressed="false" data-node-kind="security" data-node-sublabel="需最新真实成功尝试" data-node-context="先停下">
+          <title>拒绝过期 PASS · 需最新真实成功尝试 · 先停下</title>
+          <rect x="408" y="220" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="408" y="220" width="210" height="76" rx="6" class="c-security" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(414 226) scale(0.6875)">
+            <path d="M8 2.2 13 4v3.5c0 3.1-1.8 5.4-5 6.5-3.2-1.1-5-3.4-5-6.5V4Z"/>
+            <path d="m5.8 8 1.5 1.5 3-3"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="513" y="241" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">拒绝过期 PASS</text>
+          <text data-detail="context" x="513" y="258" class="t-muted" font-size="8" text-anchor="middle">需最新真实成功尝试</text>
+        </g>
+
+        <g id="node-status" data-node-id="status" data-node-label="Status" tabindex="0" role="button" aria-label="聚焦Status，只读冲突与确认事件, 恢复判断" aria-pressed="false" data-node-kind="backend" data-node-sublabel="只读冲突与确认事件" data-node-context="恢复判断">
+          <title>Status · 只读冲突与确认事件 · 恢复判断</title>
+          <rect x="168" y="354" width="210" height="76" rx="6" class="c-mask"/>
+          <rect x="168" y="354" width="210" height="76" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(174 360) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-node-label="" data-detail-anchor="" x="273" y="375" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Status</text>
+          <text data-detail="context" x="273" y="392" class="t-muted" font-size="8" text-anchor="middle">只读冲突与确认事件</text>
+        </g>
+
+        <!-- Edge labels -->
+        <g data-detail="context" data-edge-from="apply" data-edge-to="status" data-edge-label="未知 / 冲突" data-edge-key="0" data-edge-id="apply-unknown">
+          <rect x="62.6" y="372" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="94" y="382" class="t-edge-security" font-size="8" text-anchor="middle">未知 / 冲突</text>
+        </g>
+        <g data-detail="context" data-edge-from="checkfail" data-edge-to="status" data-edge-label="决定回退" data-edge-key="1" data-edge-id="failed-status">
+          <rect x="248.8" y="315" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="273" y="325" class="t-edge-default" font-size="8" text-anchor="middle">决定回退</text>
+        </g>
+        <g data-detail="context" data-edge-from="stale" data-edge-to="status" data-edge-label="检查现状" data-edge-key="2" data-edge-id="stale-status">
+          <rect x="421.3" y="372" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="445.5" y="382" class="t-edge-default" font-size="8" text-anchor="middle">检查现状</text>
+        </g>
+
+        <!-- Legend -->
+        <g data-legend="" data-legend-bridge="">
+          <text x="20" y="458" class="t-primary" font-size="12" font-weight="650">图例</text>
+          <g data-legend-semantic-kind="backend" data-legend-kind="backend" data-legend-label="执行步骤" data-legend-x="20" data-legend-baseline="478" data-legend-width="78">
+            <rect x="20" y="470" width="14" height="9" rx="2" class="c-backend" stroke-width="1"/>
+            <text x="42" y="478" class="t-muted" font-size="7.5" font-weight="500">执行步骤</text>
+          </g>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="拒绝条件" data-legend-x="105" data-legend-baseline="478" data-legend-width="78">
+            <rect x="105" y="470" width="14" height="9" rx="2" class="c-security" stroke-width="1"/>
+            <text x="127" y="478" class="t-muted" font-size="7.5" font-weight="500">拒绝条件</text>
+          </g>
+        </g>
+      </svg>
