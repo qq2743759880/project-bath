@@ -51,12 +51,7 @@
 <a name="install"></a>
 ## 安装：只装运行包，不把展示素材装进 Agent
 
-本页展示 **0.2.0-rc2 预览版**；默认稳定版仍为 v0.1.3，RC1 保留，预览版请在独立位置试用。
-
-| 通道 | 版本与下载 |
-|---|---|
-| 默认 Stable | [v0.1.3 稳定运行包](https://raw.githubusercontent.com/qq2743759880/project-bath/v0.1.3/distributions/project-bath-v0.1.3-skill.zip) |
-| 可选 Preview | [v0.2.0-rc2 运行包](https://raw.githubusercontent.com/qq2743759880/project-bath/v0.2.0-rc2/distributions/project-bath-v0.2.0-rc2.zip) |
+当前版本为 **v0.2.0-rc2**（Release Candidate）。本页的功能、安装步骤和示例均对应这一版本。
 
 运行要求为 **Windows、PowerShell 7.4+、本地固定 NTFS**，并需要可写的 `D:/project-bath`。本次实际运行使用 Windows 与 PowerShell 7.6.5；Linux/macOS 未验证、当前也不支持。PowerShell 自带所需 .NET；使用工具不需要 Python、Node.js 或 npm。
 
