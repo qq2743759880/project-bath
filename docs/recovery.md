@@ -1,6 +1,6 @@
 # RC1 恢复、取消与安全终止
 
-[交互恢复图](https://qq2743759880.github.io/project-bath/recovery/) · [Typed JSON](../assets/diagram-source/recovery.json)
+[交互恢复图](https://shltbro.github.io/project-bath/recovery/) · [Typed JSON](../assets/diagram-source/recovery.json)
 
 ![恢复控制面](../assets/recovery.png)
 

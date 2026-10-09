@@ -55,7 +55,7 @@
 
 运行要求为 **Windows、PowerShell 7.4+、本地固定 NTFS**，并需要可写的 `D:/project-bath`。本次实际运行使用 Windows 与 PowerShell 7.6.5；Linux/macOS 未验证、当前也不支持。PowerShell 自带所需 .NET；使用工具不需要 Python、Node.js 或 npm。
 
-[下载 RC2 运行包](https://raw.githubusercontent.com/qq2743759880/project-bath/v0.2.0-rc2/distributions/project-bath-v0.2.0-rc2.zip)。它保留该版本原始 ZIP 字节。解压后是一个 `project-bath` 目录，必须保留这些路径：
+[下载 RC2 运行包](https://raw.githubusercontent.com/SHlTbro/project-bath/v0.2.0-rc2/distributions/project-bath-v0.2.0-rc2.zip)。它保留该版本原始 ZIP 字节。解压后是一个 `project-bath` 目录，必须保留这些路径：
 
 | 安装内容 | 职责 |
 |---|---|
@@ -225,4 +225,4 @@ Agent 宿主负责语义判断。PowerShell 工具进程负责计划绑定、文
 
 - [可编辑图形与关系索引](docs/architecture/index.md)作为可选技术参考。
 - [原 Skill 入口](SKILL.md)、[执行协议](references/protocol.md)及[工具源码](scripts/bath.ps1)供技术读者查阅；阅读本页即可完成理解和首次使用。
-- 项目仓库为 [qq2743759880/project-bath](https://github.com/qq2743759880/project-bath)。运行包、源码和可编辑图形随仓库提供；本页 RC2 交互 HTML 可下载阅读，未部署 RC2 线上 Demo。
+- 项目仓库为 [SHlTbro/project-bath](https://github.com/SHlTbro/project-bath)。运行包、源码和可编辑图形随仓库提供；本页 RC2 交互 HTML 可下载阅读，未部署 RC2 线上 Demo。

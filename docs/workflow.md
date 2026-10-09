@@ -1,6 +1,6 @@
 # RC1 工作流
 
-[交互流程图](https://qq2743759880.github.io/project-bath/) · [Typed JSON](../assets/diagram-source/workflow.json) · [PNG](../assets/workflow.png) · [Trace WebM](../assets/workflow.webm)
+[交互流程图](https://shltbro.github.io/project-bath/) · [Typed JSON](../assets/diagram-source/workflow.json) · [PNG](../assets/workflow.png) · [Trace WebM](../assets/workflow.webm)
 
 范围与 baseline → 候选证据判断。证据不足或只读审计 → 暂留 / NoOp；授权且证据充分 → Prepare → BackedUp → Apply → Applied → Check → Finalize → Completed。
 
