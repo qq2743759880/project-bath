@@ -1,4 +1,4 @@
-# 工具协议（0.2.0-rc2 工程 staging）
+# 工具协议（0.2.0-rc3）
 
 Windows / PowerShell 7.4+ / 固定本地 NTFS 普通对象。先运行绝对路径 `scripts/bath.ps1 -Action Help` 核对候选实际能力。`ok=false` 或非零退出即停止对应操作。
 
@@ -65,7 +65,7 @@ exit 0
 
 ## D 保存、恢复与停止
 
-`D:/project-bath/<项目名-根hash>/<唯一批次>/` 保存实际原字节：单文件 before.bin；group/mixed 每个修改文件 entries/<entry_id>/before.bin，edit 另存完整 after.bin。mixed 对其他更名子项保存完整 namespace ledger，**不备份整棵树的文件字节**。原计划、runtime、双 scope、namespace 及全部修改文件备份均须保存/readback 核验后才允许首个项目写入；缺失或篡改任一备份拒绝全部写入。
+`D:/project-bath/<所属项目名>/root-<根hash>/<唯一批次>/` 保存实际原字节：单文件 before.bin；group/mixed 每个修改文件 entries/<entry_id>/before.bin，edit 另存完整 after.bin。mixed 对其他更名子项保存完整 namespace ledger，**不备份整棵树的文件字节**。原计划、runtime、双 scope、namespace 及全部修改文件备份均须保存/readback 核验后才允许首个项目写入；缺失或篡改任一备份拒绝全部写入。
 
 一把项目锁、一个 owner lease、一个批次；逐项意图及精确确认持久记录。mixed 先确认目录更名，再重新核验映射后的全部文件/父目录并依计划修改；仅更名 Applied 不等于整批 Applied。不能宣称目录 ACID 或冻结全树事务。
 
@@ -76,3 +76,9 @@ exit 0
 - Cancel：仅旧单文件未完整准备且无操作日志的当前 owner；group/mixed 用 Close。
 
 恢复字节不承诺恢复全部 owner/时间等元数据；锁/lease 不限制其他宿主写入。只有真实终态、自己的 lease 释放及充分检查有证据才报告完成。
+
+## 项目归属与材料位置
+
+Prepare 可传 `-ProjectName` 指定真实所属项目（普通单一文件夹名）；通用目标名 project/test/fixture 与 bath-test-* 必须指定。绑定以规范根路径、根身份和完整根 hash 持久保存到 D 保存区内部 `.projects` 索引；同根不能更换项目名绕过 lease。多个目标根仍分属同一项目名目录的不同 root 子目录，不混淆文件身份或恢复。未迁移的旧批次仍可用原 Root/Batch 访问；新布局 Prepare 遇旧活跃 lease 拒绝。
+
+测试夹具是 project-bath 的工程材料，不是独立用户项目；计划、报告、失败证据均按上述归属收纳。历史移动必须先做无覆盖盘点、字节/对象核验和原新路径清单，不能改写哈希绑定的 manifest/receipt 或宣称搬迁后的测试根仍保持原身份。真实活跃项目与归属不明材料不自动迁移。

@@ -6,10 +6,10 @@ $ErrorActionPreference='Stop'
 $repo=Split-Path -Parent $PSScriptRoot
 $tool=Join-Path $repo 'scripts\bath.ps1'
 $id=[Guid]::NewGuid().ToString('N').Substring(0,12)
-$sampleHome=Join-Path ([IO.Path]::GetPathRoot($repo)) ('bath-test-showcase-'+$id)
+$sampleHome=Join-Path (Join-Path $repo '.project-bath-fixtures') ('showcase-'+$id)
 [void][IO.Directory]::CreateDirectory($sampleHome)
 $root=Join-Path $sampleHome 'project'
-$work=Join-Path $sampleHome 'work'
+$work=Join-Path 'D:\project-bath\project-bath\_work' ('showcase-'+$id)
 [void][IO.Directory]::CreateDirectory($root)
 [void][IO.Directory]::CreateDirectory($work)
 $encoding=[Text.UTF8Encoding]::new($false)
@@ -33,7 +33,7 @@ if([IO.File]::ReadAllText((Join-Path $ViewRoot 'current-guide.md')) -ne "Current
 $calls=[Collections.Generic.List[object]]::new()
 function Invoke-Demo([string]$Action,[string]$Batch='',[string]$Receipt='') {
     $arguments=@('-NoProfile','-File',$tool,'-Action',$Action,'-Root',$root)
-    if($Action-ceq'Prepare'){$arguments+=@('-Plan',$plan,'-Scope',$scope)}
+    if($Action-ceq'Prepare'){$arguments+=@('-Plan',$plan,'-Scope',$scope,'-ProjectName','project-bath')}
     if($Batch){$arguments+=@('-Batch',$Batch)}
     if($Action-ceq'Check'){$arguments+=@('-CheckScript',$checker)}
     if($Receipt){$arguments+=@('-Receipt',$Receipt)}

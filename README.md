@@ -6,7 +6,7 @@
 
 旧说明已经被替代，却仍在影响 Agent；目录换了名字，启动配置还指着旧路径；清理完才发现需要找回文件。project-bath 把这些维护任务变成有范围、有检查、有退路的小批次操作。
 
-你提供项目目录、清理目标、保留项和可用检查。Agent 判断哪些内容确实失效，工具保存修改目标的原字节并保护恢复过程。你得到清理后的项目、检查结果和集中放在 D 盘的可回取备份。证据不足时可以零修改。
+你提供项目目录、清理目标、保留项和可用检查。Agent 判断哪些内容确实失效，工具保存修改目标的原字节并保护恢复过程。你得到清理后的项目、检查结果和集中放在 D 盘的可回取备份。同一真实项目的所有批次统一放在 `D:/project-bath/<项目名>/`；Prepare 用 `-ProjectName` 绑定归属，子目录和测试夹具不会各占一个顶层项目目录。证据不足时可以零修改。
 
 ## 本页导航
 
@@ -51,11 +51,11 @@
 <a name="install"></a>
 ## 安装：只装运行包，不把展示素材装进 Agent
 
-当前版本为 **v0.2.0-rc2**（Release Candidate）。本页的功能、安装步骤和示例均对应这一版本。
+当前版本为 **v0.2.0-rc3**（Release Candidate）。本页的功能、安装步骤和示例均对应这一版本。
 
 运行要求为 **Windows、PowerShell 7.4+、本地固定 NTFS**，并需要可写的 `D:/project-bath`。本次实际运行使用 Windows 与 PowerShell 7.6.5；Linux/macOS 未验证、当前也不支持。PowerShell 自带所需 .NET；使用工具不需要 Python、Node.js 或 npm。
 
-[下载 RC2 运行包](https://raw.githubusercontent.com/SHlTbro/project-bath/v0.2.0-rc2/distributions/project-bath-v0.2.0-rc2.zip)。它保留该版本原始 ZIP 字节。解压后是一个 `project-bath` 目录，必须保留这些路径：
+[下载 RC3 运行包](https://raw.githubusercontent.com/SHlTbro/project-bath/v0.2.0-rc3/distributions/project-bath-v0.2.0-rc3.zip)。它保留该版本原始 ZIP 字节。解压后是一个 `project-bath` 目录，必须保留这些路径：
 
 | 安装内容 | 职责 |
 |---|---|
@@ -90,7 +90,7 @@ pwsh -NoProfile -File ./preview-install/project-bath/scripts/bath.ps1 -Action He
 pwsh -NoProfile -File examples/first-cleanup.ps1
 ```
 
-示例会在同一磁盘根部创建唯一的 `bath-test-showcase-*` 一次性目录，准备两份明确互相建立替代关系的说明，只归档旧的一份。它实际执行 Prepare、Apply、Check、Finalize、Status、历史 Restore，并核对恢复后的原字节。不会清理你的现有项目，也不会删除示例或 D 盘失败证据。
+示例会在下载仓库内的 `.project-bath-fixtures/` 专用工作区创建唯一的一次性目录；计划、检查与运行记录集中到 `D:/project-bath/project-bath/_work/`，工具备份集中在同一项目目录，准备两份明确互相建立替代关系的说明，只归档旧的一份。它实际执行 Prepare、Apply、Check、Finalize、Status、历史 Restore，并核对恢复后的原字节。不会清理你的现有项目，也不会删除示例或 D 盘失败证据。
 
 已实测的结果摘要：
 
@@ -225,4 +225,4 @@ Agent 宿主负责语义判断。PowerShell 工具进程负责计划绑定、文
 
 - [可编辑图形与关系索引](docs/architecture/index.md)作为可选技术参考。
 - [原 Skill 入口](SKILL.md)、[执行协议](references/protocol.md)及[工具源码](scripts/bath.ps1)供技术读者查阅；阅读本页即可完成理解和首次使用。
-- 项目仓库为 [SHlTbro/project-bath](https://github.com/SHlTbro/project-bath)。运行包、源码和可编辑图形随仓库提供；本页 RC2 交互 HTML 可下载阅读，未部署 RC2 线上 Demo。
+- 项目仓库为 [SHlTbro/project-bath](https://github.com/SHlTbro/project-bath)。运行包、源码和可编辑图形随仓库提供；本页 RC3 交互 HTML 可下载阅读，未部署 RC3 线上 Demo。

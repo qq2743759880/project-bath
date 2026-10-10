@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Root,[Parameter(Mandatory)][string]$Scope,[Parameter(Mandatory)][string]$CheckScript,[string[]]$ProtectedPaths=@())
+param([Parameter(Mandatory)][string]$Root,[Parameter(Mandatory)][string]$Scope,[Parameter(Mandatory)][string]$CheckScript,[string[]]$ProtectedPaths=@(),[string]$ArchiveParent)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'bath-scope.ps1')
@@ -116,9 +116,16 @@ function Invoke-ViewLab {
             if(![IO.Directory]::Exists($archive)) { [void][IO.Directory]::CreateDirectory($archive) }
             [void](Pin-Directory $archive $pins)
             Assert-ScopeAcl $archive
-            $key=[IO.Path]::GetFileName($source.project_root)+'-'+[BathNative]::Hash([Text.Encoding]::UTF8.GetBytes($canonical)).Substring(0,8)
-            $project=Get-LocalPath (Join-Path $archive $key)
-            if(![IO.Directory]::Exists($project)) { [void][IO.Directory]::CreateDirectory($project) }
+            $hash=[BathNative]::Hash([Text.Encoding]::UTF8.GetBytes($canonical))
+            $registry=Join-Path $archive '.projects';[void](Pin-Directory $registry $pins)
+            $binding=ConvertFrom-Json ([Text.Encoding]::UTF8.GetString((Read-PinnedFile (Join-Path $registry ($hash+'.json')) $pins).Bytes)) -AsHashtable
+            Check-Keys $binding @('schema_version','canonical_root','root_sha256','root_id','project_name')
+            $name=$binding.project_name
+            if($name-isnot[string]-or!$name-or$name.IndexOfAny([IO.Path]::GetInvalidFileNameChars())-ge 0-or$name.StartsWith('.')-or$name-ne$name.Trim()-or$name.EndsWith('.')){throw 'BAD_PROJECT_NAME: invalid owning project'}
+            if($binding.schema_version-ne 1-or$binding.canonical_root-cne$canonical-or$binding.root_sha256-cne$hash-or$binding.root_id-cne$source.root_id){throw 'BAD_PROJECT: retained view owner binding differs'}
+            $owner=Join-Path $archive $name;[void](Pin-Directory $owner $pins)
+            $project=Get-LocalPath (Join-Path $owner ('root-'+$hash.Substring(0,8)))
+            if(!$ArchiveParent-or!(Get-LocalPath $ArchiveParent).Equals($project,[StringComparison]::OrdinalIgnoreCase)){throw 'BAD_ARCHIVE_PARENT: Check must use its bound owning project, via bath.ps1'}
             [void](Pin-Directory $project $pins)
             Assert-ScopeAcl $project
             $newRun=Get-LocalPath (Join-Path $project ('view-'+$receipt.run_id))

@@ -1,7 +1,8 @@
 [CmdletBinding()]
-param([ValidateSet('Prepare','Status','Apply','Restore','Check','Finalize','Close')][string]$Action='Status',[string]$Root,[string]$Plan,[string]$Batch,[string]$CheckScript,[string]$Receipt,[string]$Scope)
+param([ValidateSet('Prepare','Status','Apply','Restore','Check','Finalize','Close')][string]$Action='Status',[string]$Root,[string]$Plan,[string]$Batch,[string]$CheckScript,[string]$Receipt,[string]$Scope,[string]$ProjectName)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
+$script:ArchiveRoot='D:\project-bath'
 $script:GroupTool=$PSCommandPath
 $script:GroupScripts=$PSScriptRoot
 $script:GroupMixed=$false
@@ -14,7 +15,7 @@ function Import-GroupHelpers {
     $tokens=$null;$errors=$null
     $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'bath.ps1'),[ref]$tokens,[ref]$errors)
     if($errors.Count){throw 'TOOL_INVALID: main helper parse failed'}
-    foreach($name in @('Initialize-Native','Get-LocalPath','Pin-Directory','New-PinnedDirectory','Read-PinnedFile','Get-Json','New-Json','Write-Lease','Check-Keys','Get-ScopedHash','Invoke-ScopedView','Read-RetainedEvidence','Copy-PinnedCheck','Assert-LabEvidence')) {
+    foreach($name in @('Assert-BathProjectName','Get-BathProjectArchive','Initialize-Native','Get-LocalPath','Pin-Directory','New-PinnedDirectory','Read-PinnedFile','Get-Json','New-Json','Write-Lease','Check-Keys','Get-ScopedHash','Invoke-ScopedView','Read-RetainedEvidence','Copy-PinnedCheck','Assert-LabEvidence')) {
         $defs=@($ast.FindAll({param($n)$n -is [Management.Automation.Language.FunctionDefinitionAst]},$false)|Where-Object Name -CEQ $name)
         if($defs.Count-ne 1){throw 'TOOL_INVALID: helper definition ambiguous'}
         # AST-created blocks have no file extent, so preserve the trusted helper directory explicitly.
@@ -344,7 +345,7 @@ function Invoke-GroupBath {
         $canonical=$project.Replace('\','/').ToLowerInvariant()
         if($canonical-eq'd:/project-bath'-or$canonical.StartsWith('d:/project-bath/')){throw 'BAD_ROOT: archive cannot be project'}
         $hash=[BathNative]::Hash([Text.Encoding]::UTF8.GetBytes($canonical))
-        $archive=Get-LocalPath (Join-Path 'D:/project-bath' ([IO.Path]::GetFileName($project)+'-'+$hash.Substring(0,8)))
+        $archive=Get-BathProjectArchive $project $hash $rootId $pins
         if($Scope-and$Action-ne'Prepare'){throw 'BAD_SCOPE: scope frozen on Prepare'}
         if($Action-eq'Prepare'){
             . (Join-Path $PSScriptRoot 'bath-scope.ps1')
@@ -379,8 +380,10 @@ function Invoke-GroupBath {
             if($beforeScope){Assert-GroupBudget $beforeScope $sources}
         }
         if($Action-eq'Prepare'){New-PinnedDirectory 'D:/project-bath' $pins;New-PinnedDirectory $archive $pins}else{[void](Pin-Directory $archive $pins)}
-        $lockPath=Join-Path $archive 'operation.lock';if([IO.File]::Exists($lockPath)){[void][BathNative]::Read($lockPath)}
-        $lock=[IO.FileStream]::new($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None);[BathNative]::Regular($lock.SafeFileHandle)
+        if($Action-ne'Status') {
+            $lockPath=Join-Path $archive 'operation.lock';if([IO.File]::Exists($lockPath)){[void][BathNative]::Read($lockPath)}
+            $lock=[IO.FileStream]::new($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None);[BathNative]::Regular($lock.SafeFileHandle)
+        }
         $identity=Join-Path $archive 'project.json';$leasePath=Join-Path $archive 'lease.json'
         if(![IO.File]::Exists($identity)){if($Action-ne'Prepare'){throw 'BAD_PROJECT: missing identity'};New-Json $identity @{canonical_root=$canonical;root_sha256=$hash;root_id=$rootId}}
         $owner=Get-Json $identity
@@ -605,7 +608,7 @@ function Invoke-GroupBath {
             $copied=Copy-PinnedCheck $copy $scriptData $pins
             $started=[DateTime]::UtcNow
             $viewScope=if($script:GroupMixed){'scope-after.json'}else{'scope.json'};$viewTarget=if($script:GroupMixed){$m.entries[0].path_after}else{$m.entries[0].path}
-            $lab=Invoke-ScopedView $project (Join-Path $batchPath $viewScope) $copy $viewTarget $current.limits.timeout_seconds
+            $lab=Invoke-ScopedView $project (Join-Path $batchPath $viewScope) $copy $viewTarget $current.limits.timeout_seconds $archive
             $finished=[DateTime]::UtcNow
             $lrPath=Get-LocalPath $lab.receipt_path;$lrData=Read-PinnedFile $lrPath $pins
             $lr=ConvertFrom-Json ([Text.Encoding]::UTF8.GetString($lrData.Bytes)) -AsHashtable -Depth 25

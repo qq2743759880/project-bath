@@ -1,3 +1,5 @@
 .agent-archive/
 .cache/
 node_modules/
+
+.project-bath-fixtures/

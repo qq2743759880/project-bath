@@ -1,12 +1,12 @@
 [CmdletBinding()]
 param([string]$Archive='', [string]$Destination='')
 $ErrorActionPreference='Stop'
-if(!$Archive){$Archive=Join-Path (Split-Path -Parent $PSScriptRoot) 'dist\project-bath-v0.2.0-rc2.zip'}
+if(!$Archive){$Archive=Join-Path (Split-Path -Parent $PSScriptRoot) 'dist\project-bath-v0.2.0-rc3.zip'}
 $Archive=[IO.Path]::GetFullPath($Archive)
 if(!$Destination){$Destination=Join-Path ([IO.Path]::GetDirectoryName($Archive)) ('project-bath-preview-'+[Guid]::NewGuid().ToString('N').Substring(0,8))}
 $Destination=[IO.Path]::GetFullPath($Destination)
 if(Test-Path -LiteralPath $Destination){throw 'Destination exists. Choose a NEW isolated directory; no existing Skill will be overwritten.'}
-if((Get-FileHash -LiteralPath $Archive).Hash.ToLowerInvariant() -cne 'afa6d6a8f0c628c4f6d9f50da3eec8d39362acc32066db2bdbbd57c7a7b42648'){throw 'Runtime archive differs from this RC2 release'}
+if((Get-FileHash -LiteralPath $Archive).Hash.ToLowerInvariant() -cne '80ac1055823f01fbb5ed4d8d54e85f8b4b780442e140f9c6676fd6d1c9e40c2d'){throw 'Runtime archive differs from this RC3 release'}
 Expand-Archive -LiteralPath $Archive -DestinationPath $Destination
 $root=Join-Path $Destination 'project-bath'
 $expected=@('SKILL.md','references/LICENSE','references/protocol.md','scripts/bath.ps1','scripts/bath-group.ps1','scripts/bath-scope.ps1','scripts/bath-view.ps1','scripts/bath-preview.ps1','scripts/bath-rename.ps1')

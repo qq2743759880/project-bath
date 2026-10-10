@@ -352,8 +352,5 @@ function Invoke-RenamePrepare {
         return @{ok=$false;state='Refused';batch=$batchPath;error_code=$code;message=$message}
     }finally{if($lock){$lock.Dispose()};foreach($pin in $pins){$pin.Dispose()}}
 }
-$result=Invoke-RenamePrepare
-$result.backup_kind='namespace_evidence';$result.full_byte_backup=$false;$result.eligible_for_finalize=$false
-if(!$result.Contains('execution_ready')){$result.execution_ready=$false};if(!$result.Contains('phase')){$result.phase='NAMESPACE_RENAME_COMPONENT_STAGING'}
-$result|ConvertTo-Json -Depth 30 -Compress
-if(!$result.ok){exit 1}
+@{ok=$false;error_code='USE_MAIN_ENTRY';message='Use bath.ps1 -Group for directory rename with associated files; standalone mutation is not supported'}|ConvertTo-Json -Compress
+exit 2

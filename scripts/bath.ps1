@@ -1,12 +1,74 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Help','Prepare','Status','Apply','Restore','Finalize','Cancel','Check','Close')][string]$Action = 'Help',
-    [string]$Root, [string]$Plan, [string]$Batch, [string]$CheckScript, [string]$Receipt, [string]$Scope, [switch]$Group
+    [string]$Root, [string]$Plan, [string]$Batch, [string]$CheckScript, [string]$Receipt, [string]$Scope, [string]$ProjectName, [switch]$Group
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $script:ArchiveRoot = 'D:\project-bath'
 $script:ToolPath = $PSCommandPath
+
+
+function Assert-BathProjectName($Name) {
+    if($Name-isnot[string]-or!$Name-or$Name.Length-gt 64-or$Name-ne$Name.Trim()-or$Name.EndsWith('.')-or$Name.IndexOfAny([IO.Path]::GetInvalidFileNameChars())-ge 0-or$Name.StartsWith('.')-or$Name-match'^(CON|PRN|AUX|NUL)(\.|$)'-or$Name-match'^(COM|LPT)[1-9](\.|$)'){throw 'BAD_PROJECT_NAME: one ordinary project folder name required'}
+}
+
+# The owner name groups multiple targets; the canonical root keeps their leases distinct.
+function Get-BathProjectArchive([string]$ProjectRoot,[string]$Hash,[string]$RootIdentity,$Pins) {
+    $canonicalRoot=$ProjectRoot.Replace('\','/').ToLowerInvariant()
+    $legacy=Join-Path $script:ArchiveRoot ([IO.Path]::GetFileName($ProjectRoot)+'-'+$Hash.Substring(0,8))
+    $registry=Join-Path $script:ArchiveRoot '.projects'
+    $binding=Join-Path $registry ($Hash+'.json')
+    if($Action-ne'Status') {
+        New-PinnedDirectory $script:ArchiveRoot $Pins
+        New-PinnedDirectory $registry $Pins
+        $mutexPath=Join-Path $registry ($Hash+'.lock')
+        if([IO.File]::Exists($mutexPath)){[void][BathNative]::Read($mutexPath)}
+        $rootMutex=[IO.FileStream]::new($mutexPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+        $Pins.Add($rootMutex);[BathNative]::Regular($rootMutex.SafeFileHandle)
+    }
+    $bound=$null
+    if([IO.File]::Exists($binding)) {
+        [void](Pin-Directory $registry $Pins)
+        $bound=Get-Json $binding
+        Check-Keys $bound @('schema_version','canonical_root','root_sha256','root_id','project_name')
+        if($bound.schema_version-ne 1-or$bound.canonical_root-cne$canonicalRoot-or$bound.root_sha256-cne$Hash-or$bound.root_id-cne$RootIdentity){throw 'BAD_PROJECT: owner binding differs from actual root'}
+        Assert-BathProjectName $bound.project_name
+    }
+    if($Action-ne'Prepare'-and$Batch) {
+        $parent=[IO.Path]::GetDirectoryName((Get-LocalPath $Batch))
+        if($parent.Equals($legacy,[StringComparison]::OrdinalIgnoreCase)) {
+            if($ProjectName){throw 'LEGACY_BATCH: omit ProjectName when addressing an unmigrated legacy batch'}
+            if($Action-ne'Status'-and[IO.File]::Exists($binding)) {
+                $current=$bound
+                $currentLease=Join-Path (Join-Path (Join-Path $script:ArchiveRoot $current.project_name) ('root-'+$Hash.Substring(0,8))) 'lease.json'
+                if([IO.File]::Exists($currentLease)-and(Get-Json $currentLease).owner){throw 'PROJECT_BUSY: legacy operation cannot bypass a current-layout lease'}
+            }
+            return $legacy
+        }
+    }
+    if($Action-ne'Status'-and[IO.File]::Exists((Join-Path $legacy 'lease.json'))-and(Get-Json (Join-Path $legacy 'lease.json')).owner){throw 'PROJECT_BUSY: active legacy batch owns this root'}
+    if([IO.File]::Exists($binding)) {
+        $identity=$bound
+        if($ProjectName-and!$ProjectName.Equals($identity.project_name,[StringComparison]::OrdinalIgnoreCase)){throw 'PROJECT_OWNER_CHANGED: cannot switch names to bypass an existing lease'}
+        $name=$identity.project_name
+    } else {
+        if($Action-ne'Prepare'){throw 'BAD_PROJECT: no owning project binding'}
+        if([IO.File]::Exists((Join-Path $legacy 'lease.json'))-and(Get-Json (Join-Path $legacy 'lease.json')).owner){throw 'PROJECT_BUSY: resolve the active legacy batch before using the new layout'}
+        $name=if($ProjectName){$ProjectName}else{[IO.Path]::GetFileName($ProjectRoot)}
+        if(!$ProjectName-and($name-in@('project','test','tests','tmp','temp','fixture','fixtures')-or$name-like'bath-test-*')){throw 'PROJECT_NAME_REQUIRED: specify the owning project, not a fixture/target name'}
+    }
+    Assert-BathProjectName $name
+    $ownerPath=Join-Path $script:ArchiveRoot $name
+    $archive=Join-Path $ownerPath ('root-'+$Hash.Substring(0,8))
+    if($Action-eq'Prepare') {
+        New-PinnedDirectory $script:ArchiveRoot $Pins
+        New-PinnedDirectory $registry $Pins
+        if(![IO.File]::Exists($binding)){New-Json $binding @{schema_version=1;canonical_root=$canonicalRoot;root_sha256=$Hash;root_id=$RootIdentity;project_name=$name}}
+        New-PinnedDirectory $ownerPath $Pins
+    } else { [void](Pin-Directory $ownerPath $Pins) }
+    return $archive
+}
 
 # Only the public PowerShell entry is exposed. Native helpers keep a locked handle
 # from comparison through IO; no path-based delete after a hash check.
@@ -384,13 +446,14 @@ function Read-ScopedState($M,[string]$BatchPath,[string]$RootPath,$Pins,$ApplyEv
     return $current
 }
 
-function Invoke-ScopedView([string]$RootPath,[string]$ScopePath,[string]$ScriptPath,[string]$Relative,[int]$Timeout) {
+function Invoke-ScopedView([string]$RootPath,[string]$ScopePath,[string]$ScriptPath,[string]$Relative,[int]$Timeout,[string]$ArchiveParent) {
     # ponytail: reuse the proven CLI; this parent only bounds its control output.
     $start=[Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
     $start.UseShellExecute=$false; $start.CreateNoWindow=$true
     $start.RedirectStandardOutput=$true; $start.RedirectStandardError=$true
     $start.StandardOutputEncoding=[Text.Encoding]::UTF8; $start.StandardErrorEncoding=[Text.Encoding]::UTF8
     foreach($arg in @('-NoProfile','-File',(Join-Path $PSScriptRoot 'bath-view.ps1'),'-Root',$RootPath,'-Scope',$ScopePath,'-CheckScript',$ScriptPath,'-ProtectedPaths',$Relative)) { $start.ArgumentList.Add($arg) }
+    $start.ArgumentList.Add('-ArchiveParent');$start.ArgumentList.Add($ArchiveParent)
     $process=[Diagnostics.Process]::new();$process.StartInfo=$start
     try {
         [void]$process.Start();$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
@@ -467,7 +530,7 @@ function Invoke-Bath {
     $projectLock = $null; $source = $null; $createdBatch = $null
     try {
         if ($Action -eq 'Help') {
-            return @{ok=$true; operations=@('Prepare','Status','Apply','Restore','Cancel','Check','Finalize','Close'); requires='Windows, PowerShell 7.4+, local fixed NTFS; ordinary files <=16 MiB each; default one file, -Group for related files'; plan='schema_version=1; entries=[{path,action:archive|edit,before_sha256,after_sha256:absent|hash,evidence,replacement_path(for edit)}]'; archive='D:/project-bath'; group='Use -Group: schema2 related file edit/archive; schema4 one same-parent directory rename plus associated original-path file entries. Prepare,Status,Apply,Restore,Check,Finalize,Close. All edited/archive originals saved before rename; other moved children have namespace evidence only. Latest CheckStarted attempt required; no ACID, tree-byte backup or merge'; scoped='Prepare optionally takes -Scope JSON; one file archive/edit; scoped Check scripts take -ViewRoot and may create declared outputs; schema4 maps scope paths after rename'; checks='Check runs trusted read-only PowerShell on retained D view; original read locks and tree change detection; no fixed file-count limit; 512 directories/64 MiB/30s; Finalize -Receipt <returned receipt>'; limits='Close only stops ambiguous/conflicted batches without restoring; Agent selects meaningful checks; no semantic correctness proof, merge or host-wide enforcement'}
+            return @{ok=$true; operations=@('Prepare','Status','Apply','Restore','Cancel','Check','Finalize','Close'); requires='Windows, PowerShell 7.4+, local fixed NTFS; ordinary files <=16 MiB each; default one file, -Group for related files'; plan='schema_version=1; entries=[{path,action:archive|edit,before_sha256,after_sha256:absent|hash,evidence,replacement_path(for edit)}]'; archive='D:/project-bath/<ProjectName>/root-<rootHash>/<batch>; Prepare -ProjectName binds the owning project, reused automatically thereafter'; group='Use -Group: schema2 related file edit/archive; schema4 one same-parent directory rename plus associated original-path file entries. Prepare,Status,Apply,Restore,Check,Finalize,Close. All edited/archive originals saved before rename; other moved children have namespace evidence only. Latest CheckStarted attempt required; no ACID, tree-byte backup or merge'; scoped='Prepare optionally takes -Scope JSON; one file archive/edit; scoped Check scripts take -ViewRoot and may create declared outputs; schema4 maps scope paths after rename'; checks='Check runs trusted read-only PowerShell on retained D view; original read locks and tree change detection; no fixed file-count limit; 512 directories/64 MiB/30s; Finalize -Receipt <returned receipt>'; limits='Close only stops ambiguous/conflicted batches without restoring; Agent selects meaningful checks; no semantic correctness proof, merge or host-wide enforcement'}
         }
         if (!$IsWindows -or $PSVersionTable.PSVersion -lt [version]'7.4') { throw 'UNSUPPORTED_HOST: PowerShell 7.4+ on Windows required' }
         Initialize-Native
@@ -476,8 +539,7 @@ function Invoke-Bath {
         $rootId = Pin-Directory $rootPath $pins
         $canonical = $rootPath.Replace('\','/').ToLowerInvariant()
         $rootHash = [BathNative]::Hash([Text.Encoding]::UTF8.GetBytes($canonical))
-        $projectName = [IO.Path]::GetFileName($rootPath)
-        $projectPath = Join-Path $script:ArchiveRoot ($projectName+'-'+$rootHash.Substring(0,8))
+        $projectPath = Get-BathProjectArchive $rootPath $rootHash $rootId $pins
         $scopePre=$null; $scopeInput=$null; $scopeRuntime=$null
         if($Scope -and $Action -ne 'Prepare') { throw 'BAD_SCOPE: Scope is frozen by Prepare; do not override it later' }
         if($Action -eq 'Prepare' -and $Scope) {
@@ -717,7 +779,7 @@ function Invoke-Bath {
                 $checkCopy=Join-Path $batchPath ('check-'+$receiptId+'.ps1')
                 $checkSnapshot=Copy-PinnedCheck $checkCopy $scriptSnapshot $pins
                 $started=[DateTime]::UtcNow
-                $lab=Invoke-ScopedView $rootPath (Join-Path $batchPath 'scope.json') $checkCopy $m.path.Replace('\','/') $scopeSnapshot.limits.timeout_seconds
+                $lab=Invoke-ScopedView $rootPath (Join-Path $batchPath 'scope.json') $checkCopy $m.path.Replace('\','/') $scopeSnapshot.limits.timeout_seconds $projectPath
                 $finished=[DateTime]::UtcNow
                 $labPath=Get-LocalPath $lab.receipt_path
                 if([IO.Path]::GetDirectoryName($labPath) -cne $lab.run_directory -or [IO.Path]::GetFileName($labPath) -cne 'receipt.json') { throw 'BAD_RECEIPT: lab path mismatch' }
@@ -913,7 +975,7 @@ if ($MyInvocation.InvocationName -ne '.') {
         }
         # Keep the existing entry; delegate group coordination without invoking single-file IO.
         $groupArgs=@('-NoProfile','-File',(Join-Path $PSScriptRoot 'bath-group.ps1'),'-Action',$Action)
-        foreach ($forwardName in @('Root','Plan','Batch','CheckScript','Receipt','Scope')) {
+        foreach ($forwardName in @('Root','Plan','Batch','CheckScript','Receipt','Scope','ProjectName')) {
             $forwardValue=Get-Variable -Name $forwardName -ValueOnly
             if ($forwardValue) { $groupArgs+=@(('-'+$forwardName),$forwardValue) }
         }
